@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="FitTrack — Günlük kalori, su, egzersiz ve kilo takibi." />
+  <title>FitTrack — Fitness Takip Sistemi</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Toast: aria-live ile ekran okuyucuya duyurulur -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="#" class="logo" aria-label="FitTrack ana sayfa">Fit<span>Track</span></a>
+      <nav class="main-nav" aria-label="Sayfa bölümleri">
+        <a href="#dashboard">Dashboard</a>
+        <a href="#hedef-ayarlari">Hedef Ayarları</a>
+        <a href="#egzersizler">Egzersizler</a>
+        <a href="#hedefler">Kilo</a>
+        <a href="#ozet">Özet</a>
+      </nav>
+      <button
+        type="button"
+        class="btn btn-outline btn-small"
+        id="btn-reset-day"
+        aria-label="Bugünün kalori, su ve egzersiz kayıtlarını sıfırla"
+      >
+        Günü Sıfırla
+      </button>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <!-- Karşılama -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-inner">
+        <p class="hero-badge">Günlük takip · Veriler tarayıcıda saklanır</p>
+        <h1 id="hero-title">Bugünkü Fitness Durumun</h1>
+        <p class="hero-desc">
+          Önce hedeflerini netleştir; ardından kalori ve suyu güncelle, egzersizlerini ekle. Her kartın altında ne yapman gerektiği kısaca yazıyor.
+        </p>
+        <p class="hero-quote" id="motivation-text"></p>
+        <button type="button" class="btn btn-primary" id="btn-start-today" aria-label="Dashboard özetine kaydır">
+          Bugün Takibe Başla
+        </button>
+      </div>
+    </section>
+
+    <!-- Özet kartları -->
+    <section id="dashboard" class="section dashboard-section" aria-labelledby="dash-heading">
+      <div class="section-head">
+        <h2 id="dash-heading">Dashboard Özeti</h2>
+        <p class="section-sub">Bugünkü ilerlemeni tek bakışta gör; kartlar küçük ekranda alt alta sıralanır.</p>
+      </div>
+      <div class="card-grid card-grid-4">
+        <article class="stat-card" aria-labelledby="stat-cal-title">
+          <div class="stat-card-icon stat-cal" aria-hidden="true"></div>
+          <h3 id="stat-cal-title">Günlük Kalori</h3>
+          <p class="stat-value"><span id="dash-cal-current">0</span> / <span id="dash-cal-goal">2200</span> kcal</p>
+          <div class="mini-bar" aria-hidden="true"><span id="dash-cal-bar"></span></div>
+          <p class="panel-footnote">Alınan kalori, günlük kalori hedefine göre dolar.</p>
+        </article>
+        <article class="stat-card" aria-labelledby="stat-water-title">
+          <div class="stat-card-icon stat-water" aria-hidden="true"></div>
+          <h3 id="stat-water-title">İçilen Su</h3>
+          <p class="stat-value"><span id="dash-water-current">0</span> / <span id="dash-water-goal">8</span> bardak</p>
+          <div class="mini-bar mini-bar-water" aria-hidden="true"><span id="dash-water-bar"></span></div>
+          <p class="panel-footnote">Her bardak yaklaşık 250 ml varsayımıyla hesaplanır.</p>
+        </article>
+        <article class="stat-card" aria-labelledby="stat-ex-title">
+          <div class="stat-card-icon stat-ex" aria-hidden="true"></div>
+          <h3 id="stat-ex-title">Yapılan Egzersiz</h3>
+          <p class="stat-value"><span id="dash-ex-minutes">0</span> / <span id="dash-ex-goal">45</span> dk</p>
+          <p class="stat-meta"><span id="dash-ex-count">0</span> kayıt</p>
+          <div class="mini-bar mini-bar-ex" aria-hidden="true"><span id="dash-ex-bar"></span></div>
+          <p class="panel-footnote">Toplam süre, günlük egzersiz dakika hedefine göre gösterilir.</p>
+        </article>
+        <article class="stat-card" aria-labelledby="stat-weight-title">
+          <div class="stat-card-icon stat-weight" aria-hidden="true"></div>
+          <h3 id="stat-weight-title">Kilo Hedefi</h3>
+          <p class="stat-value"><span id="dash-weight-current">—</span> kg → <span id="dash-weight-goal">—</span> kg</p>
+          <p class="stat-hint" id="dash-weight-progress">İlerleme hesaplanıyor…</p>
+          <p class="panel-footnote">Mevcut kilonu sık güncellemek grafiği daha anlamlı kılar.</p>
+        </article>
+      </div>
+
+      <div class="badges-block" aria-labelledby="badges-heading">
+        <h3 id="badges-heading" class="badges-title">Başarı Rozetleri</h3>
+        <p class="badges-sub">Bugünkü ve haftalık hedeflere göre güncellenir.</p>
+        <ul class="badges-row" role="list">
+          <li id="badge-water" class="badge badge--inactive" aria-current="false">
+            <span class="badge-label">Su Hedefi Tamamlandı</span>
+          </li>
+          <li id="badge-active-day" class="badge badge--inactive" aria-current="false">
+            <span class="badge-label">Aktif Gün</span>
+          </li>
+          <li id="badge-balanced" class="badge badge--inactive" aria-current="false">
+            <span class="badge-label">Dengeli Gün</span>
+          </li>
+          <li id="badge-weekly" class="badge badge--inactive" aria-current="false">
+            <span class="badge-label">Haftalık Hedefe Yakın</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Hedef ayarları -->
+    <section id="hedef-ayarlari" class="section panel-section" aria-labelledby="goals-heading">
+      <div class="panel panel-accent">
+        <header class="panel-head">
+          <h2 id="goals-heading">Hedef Ayarları</h2>
+          <p>Buradan günlük kalori, su, egzersiz süresi ve hedef kilonu güncelle. Değişiklikler kaydedildiğinde tüm çubuklar otomatik uyum sağlar.</p>
+        </header>
+        <div class="panel-body">
+          <form class="goals-form" id="form-goals" novalidate>
+            <div class="goals-grid">
+              <div class="form-row">
+                <label for="goal-calorie-input">Günlük kalori hedefi (kcal)</label>
+                <input type="number" id="goal-calorie-input" min="1000" max="5000" step="50" inputmode="numeric" required aria-describedby="hint-goal-cal" />
+                <p id="hint-goal-cal" class="field-hint">Önerilen aralık: 1000–5000 kcal.</p>
+              </div>
+              <div class="form-row">
+                <label for="goal-water-input">Günlük su hedefi (bardak)</label>
+                <input type="number" id="goal-water-input" min="1" max="24" step="1" inputmode="numeric" required aria-describedby="hint-goal-water" />
+                <p id="hint-goal-water" class="field-hint">1–24 bardak arası bir hedef seçebilirsin.</p>
+              </div>
+              <div class="form-row">
+                <label for="goal-exercise-input">Günlük egzersiz dakika hedefi</label>
+                <input type="number" id="goal-exercise-input" min="5" max="300" step="5" inputmode="numeric" required aria-describedby="hint-goal-ex" />
+                <p id="hint-goal-ex" class="field-hint">Örn: 30–60 dk arası yaygın bir hedeftir.</p>
+              </div>
+              <div class="form-row">
+                <label for="goal-weight-settings-input">Hedef kilo (kg)</label>
+                <input type="number" id="goal-weight-settings-input" min="30" max="250" step="0.1" inputmode="decimal" required aria-describedby="hint-goal-w" />
+                <p id="hint-goal-w" class="field-hint">Kilo bölümündeki hedef ile aynı değeri paylaşır.</p>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-secondary" aria-label="Kalori, su, egzersiz ve hedef kilo ayarlarını kaydet">
+              Hedefleri Kaydet ve Uygula
+            </button>
+          </form>
+          <p class="panel-footnote panel-footnote-tight">Kaydetmediğin sürece eski hedefler korunur. Sayfa yenilendiğinde son kayıtlı hedefler gelir.</p>
+
+          <div class="danger-zone" aria-labelledby="danger-zone-title">
+            <h3 id="danger-zone-title" class="danger-zone-title">Veri yönetimi</h3>
+            <p class="field-hint danger-hint">
+              <strong>Tüm Geçmişi Temizle</strong>, tarih bazlı aktivite geçmişini ve bugünün kalori / su / egzersiz kayıtlarını siler. Günlük hedef değerlerin (kalori, su, egzersiz dakikası, hedef kilo), mevcut kilon ve kayıtlı boy bilgin korunur.
+            </p>
+            <button type="button" class="btn btn-danger-soft" id="btn-clear-all-history" aria-label="Tüm aktivite geçmişini ve bugünün kayıtlarını sil">
+              Tüm Geçmişi Temizle
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Kalori -->
+    <section id="kalori" class="section panel-section" aria-labelledby="cal-heading">
+      <div class="panel">
+        <header class="panel-head">
+          <h2 id="cal-heading">Kalori Takibi</h2>
+          <p>Yediklerinden tahmini kaloriyi buraya ekle. Çubuk %100 olduğunda hedefe ulaştın demektir; fazlası uyarı olarak gösterilir.</p>
+        </header>
+        <div class="panel-body">
+          <div class="progress-block">
+            <div class="progress-labels">
+              <span>Alınan: <strong id="cal-consumed">0</strong> kcal</span>
+              <span>Hedef: <strong id="cal-goal-display">2200</strong> kcal</span>
+            </div>
+            <div
+              class="progress-track progress-track-rich"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+              aria-label="Kalori hedefine yakınlık"
+              id="cal-progress-wrap"
+            >
+              <div class="progress-fill progress-fill-cal" id="cal-progress-fill"></div>
+            </div>
+          </div>
+          <form class="inline-form" id="form-calorie" novalidate aria-label="Kalori ekleme formu">
+            <div class="field-grow">
+              <label class="input-label" for="calorie-input">Eklenecek kalori</label>
+              <input type="number" id="calorie-input" min="1" max="8000" step="1" placeholder="Örn: 350" inputmode="numeric" aria-describedby="hint-cal" />
+            </div>
+            <button type="submit" class="btn btn-primary" aria-label="Girdiğin kalori miktarını günlük toplama ekle">
+              Kaloriyi Listeye Ekle
+            </button>
+          </form>
+          <p id="hint-cal" class="field-hint">Tek seferde en fazla 8000 kcal ekleyebilirsin; mantıksız yüksek değerler uyarı verir.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Su -->
+    <section id="su" class="section panel-section" aria-labelledby="water-heading">
+      <div class="panel">
+        <header class="panel-head">
+          <h2 id="water-heading">Su Takibi</h2>
+          <p>Su hedefini üstteki ayarlardan değiştirebilirsin. Burada bardak bardak ilerlemeni işaretlersin.</p>
+        </header>
+        <div class="panel-body">
+          <div class="progress-block">
+            <div class="progress-labels">
+              <span>İçilen: <strong id="water-count">0</strong> bardak</span>
+              <span>Hedef: <strong id="water-goal-display">8</strong> bardak</span>
+            </div>
+            <div
+              class="progress-track progress-track-rich"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+              aria-label="Su hedefine yakınlık"
+              id="water-progress-wrap"
+            >
+              <div class="progress-fill progress-fill-water" id="water-progress-fill"></div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" id="btn-water-plus" aria-label="İçilen suya bir bardak ekle">+1 Bardak</button>
+            <button type="button" class="btn btn-outline" id="btn-water-reset" aria-label="Bugünkü içilen bardak sayısını sıfırla">
+              Sayacı Sıfırla
+            </button>
+          </div>
+          <p class="panel-footnote">Sıfırla yalnızca bugünkü bardak sayısını temizler; hedefin değişmez.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Egzersiz -->
+    <section id="egzersizler" class="section panel-section" aria-labelledby="ex-heading">
+      <div class="panel">
+        <header class="panel-head">
+          <h2 id="ex-heading">Egzersiz Takibi</h2>
+          <p>Hareketini adlandır, süreyi ve türü seç; liste altında toplam dakikan günlük egzersiz hedefine göre dolacak.</p>
+        </header>
+        <div class="panel-body">
+          <div class="progress-block">
+            <div class="progress-labels">
+              <span>Toplam süre: <strong id="ex-progress-current">0</strong> dk</span>
+              <span>Hedef: <strong id="ex-progress-goal">45</strong> dk</span>
+            </div>
+            <div
+              class="progress-track progress-track-rich"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+              aria-label="Günlük egzersiz dakika hedefine yakınlık"
+              id="ex-progress-wrap"
+            >
+              <div class="progress-fill progress-fill-ex" id="ex-progress-fill"></div>
+            </div>
+          </div>
+
+          <form class="stack-form" id="form-exercise" novalidate aria-label="Yeni egzersiz ekleme formu">
+            <div class="form-row">
+              <label for="ex-name">Egzersiz adı</label>
+              <input type="text" id="ex-name" maxlength="80" placeholder="Örn: Yoğun tempolu yürüyüş" autocomplete="off" />
+            </div>
+            <div class="form-row">
+              <label for="ex-duration">Süre (dakika)</label>
+              <input type="number" id="ex-duration" min="1" max="480" step="1" placeholder="Örn: 25" inputmode="numeric" aria-describedby="hint-ex-dur" />
+              <p id="hint-ex-dur" class="field-hint">Tek kayıt için üst sınır 480 dakikadır.</p>
+            </div>
+            <div class="form-row">
+              <label for="ex-type">Egzersiz türü</label>
+              <select id="ex-type">
+                <option value="Kardiyo">Kardiyo</option>
+                <option value="Ağırlık">Ağırlık</option>
+                <option value="Esneme">Esneme</option>
+                <option value="Yürüyüş">Yürüyüş</option>
+                <option value="Diğer" selected>Diğer</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary" aria-label="Listeye yeni egzersiz ekle">Egzersiz Ekle</button>
+          </form>
+
+          <div class="ex-summary" role="status">
+            <strong>Toplam süre:</strong> <span id="ex-total-minutes">0</span> dakika · <strong>Kayıt:</strong> <span id="ex-total-count">0</span>
+          </div>
+          <ul class="ex-list" id="exercise-list" aria-live="polite" aria-label="Bugünkü egzersiz listesi"></ul>
+          <div class="empty-state" id="ex-empty-state" role="status" aria-live="polite">
+            <p class="empty-state-title">Henüz egzersiz eklenmedi</p>
+            <p class="empty-state-text">
+              Yukarıdaki formdan bir aktivite adı, süre ve tür seçerek kayıt ekleyebilirsin. Kısa bir yürüyüş bile takibe dahil edilebilir.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Kilo -->
+    <section id="hedefler" class="section panel-section" aria-labelledby="weight-heading">
+      <div class="panel panel-highlight">
+        <header class="panel-head">
+          <h2 id="weight-heading">Kilo Takibi</h2>
+          <p>Mevcut kilonu güncelle; hedef kiloyu buradan veya Hedef Ayarları panelinden kaydedebilirsin.</p>
+        </header>
+        <div class="panel-body">
+          <div class="weight-grid">
+            <div class="weight-box">
+              <span class="weight-label">Mevcut kilo</span>
+              <span class="weight-num" id="weight-current-display">—</span>
+              <span class="unit">kg</span>
+            </div>
+            <div class="weight-box">
+              <span class="weight-label">Hedef kilo</span>
+              <span class="weight-num" id="weight-goal-display">—</span>
+              <span class="unit">kg</span>
+            </div>
+            <div class="weight-box wide">
+              <span class="weight-label">İlerleme</span>
+              <p class="weight-msg" id="weight-message">Kilo bilgilerini güncelleyerek hedefini netleştir.</p>
+            </div>
+          </div>
+          <form class="inline-form wrap-form" id="form-weight" novalidate aria-label="Mevcut kiloyu güncelle">
+            <div class="field-grow">
+              <label class="input-label" for="weight-input">Yeni mevcut kilo (kg)</label>
+              <input type="number" id="weight-input" min="30" max="250" step="0.1" placeholder="Örn: 76.2" inputmode="decimal" />
+            </div>
+            <button type="submit" class="btn btn-secondary" aria-label="Mevcut kiloyu kaydet">Kiloyu Güncelle</button>
+          </form>
+          <form class="inline-form wrap-form subtle-form" id="form-goal-weight" novalidate aria-label="Hedef kiloyu kaydet">
+            <div class="field-grow">
+              <label class="input-label" for="goal-weight-input">Hedef kilo (kg)</label>
+              <input type="number" id="goal-weight-input" min="30" max="250" step="0.1" placeholder="Örn: 72" inputmode="decimal" />
+            </div>
+            <button type="submit" class="btn btn-outline" aria-label="Hedef kiloyu güncelle">Hedef Kiloyu Kaydet</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- BMI -->
+    <section id="bmi" class="section panel-section" aria-labelledby="bmi-heading">
+      <div class="panel">
+        <header class="panel-head">
+          <h2 id="bmi-heading">Vücut Kitle İndeksi (BMI)</h2>
+          <p>Boyunu santimetre cinsinden gir. Kilo, Kilo Takibi bölümündeki mevcut kilondan okunur.</p>
+        </header>
+        <div class="panel-body">
+          <form class="inline-form wrap-form" id="form-height" novalidate aria-label="Boy bilgisini kaydet">
+            <div class="field-grow">
+              <label class="input-label" for="height-input">Boy (cm)</label>
+              <input
+                type="number"
+                id="height-input"
+                min="80"
+                max="250"
+                step="0.1"
+                placeholder="Örn: 175"
+                inputmode="decimal"
+                aria-describedby="hint-height"
+              />
+            </div>
+            <button type="submit" class="btn btn-outline" aria-label="Boy bilgisini kaydet">Boyu Kaydet</button>
+          </form>
+          <p id="hint-height" class="field-hint">Önerilen aralık: 80–250 cm.</p>
+          <div class="bmi-card" id="bmi-card">
+            <p class="bmi-value-line">
+              BMI: <strong id="bmi-value">—</strong>
+            </p>
+            <p class="bmi-status" id="bmi-status">Boy ve kilo girildiğinde hesaplanır.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bugünün özeti + haftalık rapor -->
+    <section id="ozet" class="section summary-section" aria-labelledby="summary-heading">
+      <header class="section-head">
+        <h2 id="summary-heading">Bugünün Özeti</h2>
+        <p class="section-sub">Aşağıdaki satırlar bugünkü kayıtlarından otomatik oluşur.</p>
+      </header>
+      <ul class="summary-list" id="summary-lines" aria-live="polite"></ul>
+
+      <div class="export-toolbar">
+        <button type="button" class="btn btn-outline" id="btn-export-week" aria-label="Bu haftanın özet verisini JSON dosyası olarak indir">
+          Haftalık Veriyi İndir
+        </button>
+      </div>
+
+      <aside class="weekly-report panel" aria-labelledby="weekly-heading">
+        <header class="panel-head weekly-report-head">
+          <div>
+            <h2 id="weekly-heading">Haftalık Aktivite</h2>
+            <p>Bu grafik, hafta içinde eklediğin egzersiz dakikalarına göre otomatik oluşur. Kalori ve su toplamları özet metninde gösterilir.</p>
+          </div>
+        </header>
+        <div class="panel-body weekly-report-body">
+          <p id="weekly-empty-msg" class="weekly-empty">
+            Bu hafta henüz yeterli veri yok. Kalori, su veya egzersiz ekledikçe haftalık rapor oluşacaktır.
+          </p>
+          <div id="weekly-chart-panel" hidden>
+            <div class="week-chart-scroll">
+              <div
+                id="week-chart-root"
+                class="week-chart week-chart-real"
+                role="group"
+                aria-label="Bu haftanın günlük egzersiz dakikaları"
+              ></div>
+            </div>
+            <div id="weekly-summary-lines" class="weekly-summary" aria-live="polite"></div>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="footer-brand"><strong>FitTrack</strong> · Fitness Takip Sistemi</p>
+      <p class="footer-meta">Saf HTML, CSS ve JavaScript · Veriler tarayıcıda saklanır</p>
+      <p class="footer-dev">Geliştirici: Anıl Keskin</p>
+      <p class="footer-copy">© <span id="year"></span></p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
