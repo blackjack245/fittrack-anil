@@ -2396,4 +2396,56 @@
   window.FitTrackApp.askCoach = askCoach;
 
   window.addEventListener('fittrack:user-change', reloadForUserChange);
+
+  /** Açılış splash: 3 sn göster, fade-out, DOM'dan kaldır. */
+  function initAppSplash() {
+    var splash = document.getElementById('app-splash');
+    if (!splash) return;
+
+    document.body.classList.add('app-splash-active');
+
+    var reducedMotion = false;
+    try {
+      reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch (e) {}
+
+    if (reducedMotion) {
+      splash.classList.add('app-splash--reduced-motion');
+    }
+
+    var displayMs = 3000;
+    var fadeMs = reducedMotion ? 200 : 520;
+
+    function removeSplash() {
+      if (splash.parentNode) {
+        splash.parentNode.removeChild(splash);
+      }
+      document.body.classList.remove('app-splash-active');
+    }
+
+    function startHide() {
+      splash.classList.add('app-splash--hiding');
+      splash.setAttribute('aria-hidden', 'true');
+
+      var finished = false;
+      function finish() {
+        if (finished) return;
+        finished = true;
+        removeSplash();
+      }
+
+      function onTransitionEnd(ev) {
+        if (ev.target !== splash) return;
+        splash.removeEventListener('transitionend', onTransitionEnd);
+        finish();
+      }
+
+      splash.addEventListener('transitionend', onTransitionEnd);
+      window.setTimeout(finish, fadeMs + 80);
+    }
+
+    window.setTimeout(startHide, displayMs);
+  }
+
+  initAppSplash();
 })();
