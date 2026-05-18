@@ -7,13 +7,36 @@
  * - Egzersiz nesneleri: { id, name, minutes, type }; eski kayıtlar için type varsayılanı 'Diğer'.
  * - `activityHistory`: tarih (YYYY-MM-DD) bazlı günlük kalori, su bardığı ve egzersiz dakikası özeti.
  * - `heightCm`: BMI için saklanan boy (cm); isteğe bağlı.
+ * - Akıllı Fitness Asistanı: önce Netlify Function (`/.netlify/functions/fittrack-ai`) üzerinden OpenAI, başarısızlıkta kural tabanlı `answerAiQuestion` fallback. Sohbet `fittrack_ai_chat_v1` anahtarıyla (son 20 mesaj) saklanır.
  */
 
 (function () {
   'use strict';
 
-  /** Depolama anahtarı — önceki teslimlerle uyumlu */
-  var STORAGE_KEY = 'fittrack_state_v1';
+  /**
+   * Depolama anahtarı — kullanıcı tabanlı.
+   * Giriş yapılmış kullanıcı için: `fittrack_state_v1_<userId>`
+   * Demo / misafir mod için (giriş yapılmadıysa): `fittrack_state_v1` (önceki teslimlerle uyumlu).
+   * `auth.js` `fittrack_current_user_v1` anahtarını yönetir; burası sadece okur.
+   */
+  var AUTH_CURRENT_USER_KEY = 'fittrack_current_user_v1';
+  var STORAGE_KEY_BASE = 'fittrack_state_v1';
+  var AI_CHAT_KEY_BASE = 'fittrack_ai_chat_v1';
+
+  function currentUserIdSafe() {
+    try {
+      var raw = localStorage.getItem(AUTH_CURRENT_USER_KEY);
+      if (!raw) return null;
+      var u = JSON.parse(raw);
+      if (u && typeof u.id === 'string' && u.id) return u.id;
+    } catch (e) {}
+    return null;
+  }
+
+  function getStorageKey() {
+    var id = currentUserIdSafe();
+    return id ? STORAGE_KEY_BASE + '_' + id : STORAGE_KEY_BASE;
+  }
 
   /** Geçerli egzersiz türleri */
   var EXERCISE_TYPES = ['Kardiyo', 'Ağırlık', 'Esneme', 'Yürüyüş', 'Diğer'];
@@ -224,7 +247,7 @@
   /** localStorage yaz */
   function saveState(state) {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(getStorageKey(), JSON.stringify(state));
     } catch (err) {
       showToast('Kayıt yapılamadı: tarayıcı depolaması dolu olabilir veya gizli mod aktif.', false);
     }
@@ -233,7 +256,7 @@
   /** localStorage oku + gün kontrolü */
   function loadState() {
     var base = defaultState();
-    var raw = localStorage.getItem(STORAGE_KEY);
+    var raw = localStorage.getItem(getStorageKey());
     if (!raw) return base;
 
     var parsed;
@@ -359,7 +382,18 @@
   var btnClearAllHistory = document.getElementById('btn-clear-all-history');
 
   var btnStartToday = document.getElementById('btn-start-today');
+  var btnWeeklyReport = document.getElementById('btn-weekly-report');
   var btnResetDay = document.getElementById('btn-reset-day');
+
+  var btnAiSuggest = document.getElementById('btn-ai-suggest');
+  var btnAiChatClear = document.getElementById('btn-ai-chat-clear');
+  var aiChatBox = document.getElementById('ai-chat-box');
+  var aiQuestionForm = document.getElementById('ai-question-form');
+  var aiQuestionInput = document.getElementById('ai-question-input');
+
+  var heroStatCal = document.getElementById('hero-stat-cal');
+  var heroStatWater = document.getElementById('hero-stat-water');
+  var heroStatEx = document.getElementById('hero-stat-ex');
 
   var toastTimer;
 
@@ -625,6 +659,1054 @@
     bmiStatusEl.textContent = 'Durum: ' + bmiCategoryLabel(bmi);
   }
 
+  /**
+   * Akıllı Fitness Asistanı için günlük + haftalık özet (harici API yok).
+   */
+  function getFitnessInsights() {
+    var weekData = getWeekActivityData();
+    var exMin = totalExerciseMinutes();
+    var totals = weekData.totals;
+
+    var hasTracking =
+      state.caloriesConsumed > 0 ||
+      state.waterGlasses > 0 ||
+      exMin > 0 ||
+      totals.calories > 0 ||
+      totals.water > 0 ||
+      totals.exerciseMinutes > 0;
+
+    var bmi = computeBmi(state.currentWeight, state.heightCm);
+
+    return {
+      caloriesConsumed: state.caloriesConsumed,
+      calorieGoal: state.calorieGoal,
+      waterGlasses: state.waterGlasses,
+      waterGoal: state.waterGoal,
+      exerciseMinutes: exMin,
+      exerciseGoal: state.exerciseGoalMinutes,
+      currentWeight: state.currentWeight,
+      goalWeight: state.goalWeight,
+      bmi: bmi,
+      bmiCategory: bmi === null ? null : bmiCategoryLabel(bmi),
+      weeklyExerciseMinutes: totals.exerciseMinutes,
+      weeklyTotals: totals,
+      hasTracking: hasTracking
+    };
+  }
+
+  /** Kural tabanlı öneriler — gerçek yapay zekâ API’si kullanılmaz */
+  function generateAiSuggestions() {
+    var ins = getFitnessInsights();
+    var tips = [];
+
+    if (!ins.hasTracking) {
+      tips.push(
+        'Henüz yeterli veri yok. Kalori, su ve egzersiz bilgisi ekledikçe sana daha iyi öneriler sunabilirim.'
+      );
+      return tips;
+    }
+
+    if (ins.weeklyExerciseMinutes > 150) {
+      tips.push(
+        'Bu hafta aktif bir performans göstermişsin. Haftalık egzersiz hedefin oldukça iyi ilerliyor.'
+      );
+    }
+
+    if (ins.calorieGoal > 0 && ins.caloriesConsumed > ins.calorieGoal) {
+      tips.push(
+        'Kalori hedefini aşmışsın. Günün kalanında daha hafif öğünler tercih edebilirsin.'
+      );
+    } else if (
+      ins.calorieGoal > 0 &&
+      ins.caloriesConsumed > 0 &&
+      ins.caloriesConsumed < ins.calorieGoal * 0.35
+    ) {
+      tips.push(
+        'Bugün çok az kalori girmişsin. Verilerin doğruysa dengeli beslenmeye dikkat etmelisin.'
+      );
+    }
+
+    if (ins.waterGoal > 0 && ins.waterGlasses < ins.waterGoal) {
+      tips.push(
+        'Bugün su hedefinin gerisindesin. Gün içinde 2-3 bardak daha su içmeyi deneyebilirsin.'
+      );
+    }
+
+    if (ins.exerciseGoal > 0 && ins.exerciseMinutes < ins.exerciseGoal) {
+      tips.push(
+        'Bugünkü egzersiz hedefin henüz tamamlanmadı. Kısa bir yürüyüş veya esneme iyi bir başlangıç olabilir.'
+      );
+    }
+
+    if (ins.bmiCategory === 'Normal') {
+      tips.push(
+        'BMI değerine göre dengeli bir aralıktasın. Düzenli egzersiz ve su takibini sürdürmen iyi olur.'
+      );
+    } else if (ins.bmiCategory && ins.bmiCategory !== 'Normal') {
+      tips.push(
+        'BMI yalnızca genel bir referanstır; kendini iyi hissettiğin rutinlere odaklanmak uzun vadede daha sürdürülebilir olur.'
+      );
+    }
+
+    if (tips.length === 0) {
+      tips.push(
+        'Bugünkü kayıtlarına göre hedeflerine yakınsın veya onları tamamlamışsın. Bu dengeli tempoyu sürdürmek harika bir seçim olur.'
+      );
+    }
+
+    return tips;
+  }
+
+  /**
+   * Sohbet geçmişi — fitness state’ten bağımsız temel anahtar (son 20 mesaj).
+   * Giriş yapılmış kullanıcı için kullanıcı bazlı son ekle bağlanır.
+   */
+  function getAiChatStorageKey() {
+    var id = currentUserIdSafe();
+    return id ? AI_CHAT_KEY_BASE + '_' + id : AI_CHAT_KEY_BASE;
+  }
+
+  /** Netlify üzerinde OpenAI çağrısı (yerelde `npx netlify dev` → localhost:8888). */
+  var FITTRACK_AI_URL = '/.netlify/functions/fittrack-ai';
+
+  var aiChatBusy = false;
+  var typingIndicatorEl = null;
+
+  function scrollChatToBottom() {
+    if (!aiChatBox) return;
+    aiChatBox.scrollTop = aiChatBox.scrollHeight;
+  }
+
+  function removeTypingIndicator() {
+    if (typingIndicatorEl && typingIndicatorEl.parentNode) {
+      typingIndicatorEl.parentNode.removeChild(typingIndicatorEl);
+    }
+    typingIndicatorEl = null;
+  }
+
+  function showTypingIndicator() {
+    removeTypingIndicator();
+    if (!aiChatBox) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'ai-message ai-message-bot ai-typing-indicator';
+    wrap.setAttribute('aria-live', 'polite');
+    wrap.setAttribute('aria-busy', 'true');
+
+    var label = document.createElement('div');
+    label.className = 'ai-message-label';
+    label.textContent = 'FitTrack AI';
+
+    var body = document.createElement('div');
+    body.className = 'ai-message-body ai-typing-body';
+    body.textContent = 'Yazıyor...';
+
+    wrap.appendChild(label);
+    wrap.appendChild(body);
+    aiChatBox.appendChild(wrap);
+    typingIndicatorEl = wrap;
+    scrollChatToBottom();
+  }
+
+  /** Asistana gönderilecek güvenli fitness özeti (OpenAI bağlamı). */
+  function buildFitnessDataPayloadForAi() {
+    var week = getWeekActivityData();
+    var ins = getFitnessInsights();
+    var sc = computeDailyFitTrackScore();
+    var bmiVal = computeBmi(state.currentWeight, state.heightCm);
+    return {
+      calories: state.caloriesConsumed,
+      calorieGoal: state.calorieGoal,
+      water: state.waterGlasses,
+      waterGoal: state.waterGoal,
+      exerciseMinutes: ins.exerciseMinutes,
+      exerciseGoalMinutes: state.exerciseGoalMinutes,
+      weight: Number.isFinite(state.currentWeight) ? state.currentWeight : null,
+      targetWeight: Number.isFinite(state.goalWeight) ? state.goalWeight : null,
+      bmi: bmiVal,
+      weeklySummary: {
+        totalCalories: week.totals.calories,
+        totalWater: week.totals.water,
+        totalExerciseMinutes: week.totals.exerciseMinutes
+      },
+      score: sc.total
+    };
+  }
+
+  /**
+   * OpenAI için önceki mesajlar (son eklenen kullanıcı mesajı çıkarılır — API `message` alanında taşınır).
+   */
+  function buildChatHistoryForOpenAI() {
+    var msgs = loadAiChatMessages();
+    if (msgs.length > 0 && msgs[msgs.length - 1].role === 'user') {
+      msgs = msgs.slice(0, -1);
+    }
+    return msgs.slice(-12).map(function (m) {
+      return {
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.text
+      };
+    });
+  }
+
+  function buildChatHistoryForOpenAISuggest() {
+    return loadAiChatMessages()
+      .slice(-12)
+      .map(function (m) {
+        return {
+          role: m.role === 'user' ? 'user' : 'assistant',
+          content: m.text
+        };
+      });
+  }
+
+  function fetchFittrackAi(messageText, chatHistory) {
+    return fetch(FITTRACK_AI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      body: JSON.stringify({
+        message: messageText,
+        fitnessData: buildFitnessDataPayloadForAi(),
+        chatHistory: chatHistory || []
+      })
+    })
+      .then(function (res) {
+        return res.text().then(function (text) {
+          var data = {};
+          try {
+            data = text ? JSON.parse(text) : {};
+          } catch (e) {
+            return { error: 'Sunucu yanıtı okunamadı.' };
+          }
+          if (!res.ok) {
+            return { error: (data && data.error) || 'İstek başarısız (' + res.status + ').' };
+          }
+          if (data && typeof data.reply === 'string' && data.reply.trim()) {
+            return { reply: data.reply.trim() };
+          }
+          return { error: (data && data.error) || 'Yanıt alınamadı.' };
+        });
+      })
+      .catch(function (err) {
+        return { error: err && err.message ? err.message : 'Ağ hatası.' };
+      });
+  }
+
+  function tryCloudAiThenFallback(userQuestion, getHistoryFn, fallbackFn) {
+    showTypingIndicator();
+    aiChatBusy = true;
+    var history = typeof getHistoryFn === 'function' ? getHistoryFn() : [];
+    return fetchFittrackAi(userQuestion, history)
+      .then(function (result) {
+        removeTypingIndicator();
+        if (result.reply) {
+          renderChatMessage('bot', result.reply);
+          scrollChatToBottom();
+          return;
+        }
+        showToast('AI servisine ulaşılamadı, yerel öneri gösteriliyor.', false);
+        var ans = fallbackFn(userQuestion);
+        if (ans) {
+          renderChatMessage('bot', ans);
+          scrollChatToBottom();
+        }
+      })
+      .catch(function () {
+        removeTypingIndicator();
+        showToast('AI servisine ulaşılamadı, yerel öneri gösteriliyor.', false);
+        var ans = fallbackFn(userQuestion);
+        if (ans) {
+          renderChatMessage('bot', ans);
+          scrollChatToBottom();
+        }
+      })
+      .finally(function () {
+        removeTypingIndicator();
+        aiChatBusy = false;
+      });
+  }
+
+  function loadAiChatMessages() {
+    try {
+      var raw = localStorage.getItem(getAiChatStorageKey());
+      if (!raw) return [];
+      var arr = JSON.parse(raw);
+      if (!Array.isArray(arr)) return [];
+      return arr
+        .filter(function (x) {
+          return x && (x.role === 'user' || x.role === 'bot') && typeof x.text === 'string';
+        })
+        .slice(-20);
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function saveAiChatMessages(messages) {
+    try {
+      localStorage.setItem(getAiChatStorageKey(), JSON.stringify(messages.slice(-20)));
+    } catch (err) {
+      showToast('Sohbet geçmişi kaydedilemedi (depolama dolu olabilir).', false);
+    }
+  }
+
+  function appendAiChatRecord(role, text) {
+    var msgs = loadAiChatMessages();
+    msgs.push({ role: role, text: text });
+    saveAiChatMessages(msgs);
+  }
+
+  function clearAiChatHistory() {
+    try {
+      localStorage.removeItem(getAiChatStorageKey());
+    } catch (err) {}
+    removeTypingIndicator();
+    if (aiChatBox) aiChatBox.innerHTML = '';
+    showToast('Sohbet geçmişi temizlendi.', true);
+  }
+
+  function restoreAiChatFromStorage() {
+    if (!aiChatBox) return;
+    aiChatBox.innerHTML = '';
+    loadAiChatMessages().forEach(function (m) {
+      renderChatMessage(m.role === 'user' ? 'user' : 'bot', m.text, true);
+    });
+    scrollChatToBottom();
+  }
+
+  /** Günlük FitTrack skoru (100 üzerinden); alt bileşenler su 25, egzersiz 35, kalori dengesi 25, kilo/BMI 15 */
+  function computeDailyFitTrackScore() {
+    var ins = getFitnessInsights();
+    var waterPts = 0;
+    if (ins.waterGoal > 0) {
+      waterPts = Math.round(Math.min(1, ins.waterGlasses / ins.waterGoal) * 25);
+    }
+
+    var exPts = 0;
+    if (ins.exerciseGoal > 0) {
+      exPts = Math.round(Math.min(1, ins.exerciseMinutes / ins.exerciseGoal) * 35);
+    }
+
+    var calPts = 0;
+    var g = ins.calorieGoal;
+    var c = ins.caloriesConsumed;
+    if (g > 0) {
+      var ratio = c / g;
+      if (c <= 0) calPts = 5;
+      else if (ratio > 1.15) calPts = 8;
+      else if (ratio > 1.05) calPts = 14;
+      else if (ratio >= 0.35 && ratio <= 1.05) calPts = 25;
+      else calPts = 12;
+    } else {
+      calPts = 10;
+    }
+
+    var wbPts = 0;
+    if (Number.isFinite(ins.currentWeight)) wbPts += 7;
+    if (ins.bmi !== null) wbPts += 8;
+    wbPts = Math.min(15, wbPts);
+
+    var total = Math.min(100, waterPts + exPts + calPts + wbPts);
+    return {
+      total: total,
+      water: waterPts,
+      exercise: exPts,
+      calorie: calPts,
+      weightBmi: wbPts
+    };
+  }
+
+  function scoreSummaryLine(scoreObj) {
+    var ins = getFitnessInsights();
+    var parts = [];
+    if (ins.waterGoal > 0) {
+      if (scoreObj.water >= 22) parts.push('su tarafı güçlü');
+      else if (scoreObj.water < 12) parts.push('su tarafında payını artırabilirsin');
+    }
+    if (ins.exerciseGoal > 0) {
+      if (scoreObj.exercise >= 28) parts.push('egzersiz hedefine yakınsın');
+      else if (scoreObj.exercise < 14) parts.push('egzersiz için bugün hâlâ payın var');
+    }
+    if (parts.length === 0) return 'Kayıtlarını güncelledikçe skor daha da anlamlı olur.';
+    return parts.slice(0, 2).join('; ') + '.';
+  }
+
+  function formatAiReply(statusLine, recommendationLine, motivationLine) {
+    return (
+      'Durum:\n' +
+      statusLine +
+      '\n\nÖneri:\n' +
+      recommendationLine +
+      '\n\nMotivasyon:\n' +
+      motivationLine
+    );
+  }
+
+  function randomMotivationPick() {
+    var pool = [
+      'Küçük adımlar büyük alışkanlıkları oluşturur.',
+      'İlerleme mükemmellik değil; tutarlılıktır.',
+      'Bugün gösterdiğin çaba yarının enerjisidir.',
+      'Verini güncel tutmak kararlarını kolaylaştırır.',
+      'Her bardak su ve her dakika hareket bir yatırım.'
+    ];
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function buildSmartDailyRecommendation() {
+    var ins = getFitnessInsights();
+    var tips = [];
+    if (ins.waterGoal > 0 && ins.waterGlasses < ins.waterGoal) {
+      tips.push(
+        'Su için hedefine yaklaşmak adına gün içinde birkaç bardak daha planlayabilirsin.'
+      );
+    }
+    if (ins.exerciseGoal > 0 && ins.exerciseMinutes < ins.exerciseGoal) {
+      tips.push('10–15 dakikalık tempolu yürüyüş veya esneme egzersiz payını tamamlamana yardım eder.');
+    }
+    if (ins.calorieGoal > 0 && ins.caloriesConsumed > ins.calorieGoal) {
+      tips.push('Kalori hedefinin üzerindeysen bir sonraki öğünde hafif seçimler dengeyi korur.');
+    } else if (ins.calorieGoal > 0 && ins.caloriesConsumed > 0 && ins.caloriesConsumed < ins.calorieGoal * 0.35) {
+      tips.push('Kalori girişin düşük görünüyorsa öğünlerini tahmini olarak eklemeyi unutma.');
+    }
+    if (tips.length === 0 && ins.hasTracking) {
+      tips.push('Bugün genel hatlarıyla dengeli görünüyorsun; kayıtlarını güncel tutmaya devam.');
+    }
+    if (tips.length === 0) {
+      tips.push('Kalori, su veya egzersiz ekleyerek kişisel önerileri güçlendirebilirsin.');
+    }
+    return tips.slice(0, 2).join(' ');
+  }
+
+  function normalizeAiQuestion(raw) {
+    return String(raw || '').trim().toLowerCase();
+  }
+
+  function keywordHit(q, words) {
+    for (var i = 0; i < words.length; i++) {
+      if (q.indexOf(words[i]) !== -1) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Soruyu anahtar kelime sırasına göre sınıflandırır (harici API yok).
+   * @returns {'empty'|'score'|'motivation'|'gaps'|'progress'|'weekly'|'water'|'exercise'|'calorie'|'weight'|'daily_summary'|'general'|'unknown'}
+   */
+  function analyzeUserQuestion(question) {
+    var q = normalizeAiQuestion(question);
+    if (!q) return 'empty';
+
+    var scoreKw = ['fittrack skorum', 'fittrack skor', 'skorum kaç', 'skor kaç', 'günlük skorum', 'skorum nedir'];
+    var motivationKw = ['motivasyon', 'motive', 'moral', 'sıkıldım', 'devam edemiyorum', 'pes etmek', 'vazgeçmek'];
+    var gapsKw = ['eksiklerim', 'eksikler', 'eksik kalan', 'ne eksik', 'zayıf taraf'];
+    var progressKw = [
+      'hedeflerime ne kadar',
+      'hedeflerim nasıl',
+      'hedefime yakın',
+      'ne kadar yakınsın',
+      'ne kadar yakın',
+      'ilerlem',
+      'hedefe uzaklık'
+    ];
+    var weeklyKw = [
+      'haftalık',
+      'bu hafta',
+      'haftam',
+      'hafta durumum',
+      'performans',
+      'rapor',
+      'gelişim'
+    ];
+    var waterKw = ['su', 'bardak', 'içtim', 'susuz', 'hidrasyon', 'su durum'];
+    var exerciseKw = [
+      'egzersiz',
+      'spor',
+      'antrenman',
+      'yürüyüş',
+      'kardiyo',
+      'hareket',
+      'ağırlık',
+      'ne çalışayım',
+      'çalışayım'
+    ];
+    var calorieKw = ['kalori', 'yemek', 'beslenme', 'fazla', 'enerji', 'fazla yedim', 'kalori durum', 'dengeli mi'];
+    var weightKw = ['kilo', 'bmi', 'vücut kitle', 'hedef kilo', 'zayıflama', 'kilo vermek', 'vücut ağırlık'];
+
+    var dailyKw = [
+      'durumumu analiz',
+      'bugünkü durum',
+      'genel durum',
+      'durumum nasıl',
+      'durumumu özet',
+      'bugün özet'
+    ];
+    var generalKw = ['bugün ne yapmalıyım', 'ne yapmalıyım', 'öneri', 'tavsiye', 'plan', 'bugün için'];
+
+    if (keywordHit(q, scoreKw)) return 'score';
+    if (keywordHit(q, motivationKw)) return 'motivation';
+    if (keywordHit(q, gapsKw)) return 'gaps';
+    if (keywordHit(q, progressKw)) return 'progress';
+    if (keywordHit(q, weeklyKw)) return 'weekly';
+    if (keywordHit(q, waterKw)) return 'water';
+    if (keywordHit(q, exerciseKw)) return 'exercise';
+
+    var calorieHit = keywordHit(q, calorieKw);
+    if (
+      !calorieHit &&
+      q.indexOf('biraz') === -1 &&
+      (q.indexOf(' az ') !== -1 || q.indexOf('az ') === 0)
+    ) {
+      calorieHit = true;
+    }
+    if (calorieHit) return 'calorie';
+
+    if (keywordHit(q, weightKw)) return 'weight';
+    if (keywordHit(q, dailyKw)) return 'daily_summary';
+    if (keywordHit(q, generalKw)) return 'general';
+    return 'unknown';
+  }
+
+  function collectGapBullets() {
+    var ins = getFitnessInsights();
+    var sc = computeDailyFitTrackScore();
+    var gaps = [];
+
+    if (ins.waterGoal > 0 && ins.waterGlasses < ins.waterGoal) {
+      gaps.push('Su hedefin henüz dolmamış (' + ins.waterGlasses + '/' + ins.waterGoal + ' bardak).');
+    }
+    if (ins.exerciseGoal > 0 && ins.exerciseMinutes < ins.exerciseGoal) {
+      gaps.push(
+        'Günlük egzersiz payında eksik var (' + ins.exerciseMinutes + '/' + ins.exerciseGoal + ' dk).'
+      );
+    }
+    if (ins.calorieGoal > 0 && ins.caloriesConsumed <= 0) {
+      gaps.push('Kalori tarafında bugün henüz kayıt yok.');
+    } else if (ins.calorieGoal > 0 && ins.caloriesConsumed > ins.calorieGoal * 1.05) {
+      gaps.push('Kalori kaydın günlük hedefinin biraz üzerinde görünüyor.');
+    } else if (ins.calorieGoal > 0 && ins.caloriesConsumed > 0 && ins.caloriesConsumed < ins.calorieGoal * 0.35) {
+      gaps.push('Kalori girişin hedefe göre düşük kalabilir (kayıtları kontrol etmek iyi olur).');
+    }
+    if (!Number.isFinite(ins.currentWeight)) {
+      gaps.push('Kilo takibi için güncel kilo eklenmemiş.');
+    }
+    if (ins.bmi === null && Number.isFinite(ins.currentWeight)) {
+      gaps.push('BMI özeti için boy (cm) bilgisi eksik.');
+    }
+    if (ins.weeklyExerciseMinutes > 0 && ins.weeklyExerciseMinutes < 90) {
+      gaps.push('Haftalık hareket toplamı orta seviyenin altında; küçük günlük eklemeler fark yaratır.');
+    }
+
+    if (gaps.length === 0) {
+      if (!ins.hasTracking) {
+        gaps.push('Henüz kalori, su veya egzersiz kaydı az; takip ekledikçe eksikler daha net görünür.');
+      } else if (sc.total >= 85) {
+        gaps.push('Bugün için belirgin bir boşluk görmüyorum; tempoyu korumak mantıklı.');
+      } else {
+        gaps.push('Genel hatlar iyi; FitTrack skorunu yükseltmek için su ve hareket payına bakabilirsin.');
+      }
+    }
+    return gaps.slice(0, 4);
+  }
+
+  function buildScoreAnswerText() {
+    var sc = computeDailyFitTrackScore();
+    var ins = getFitnessInsights();
+    var status =
+      'Günlük FitTrack skorun ' +
+      sc.total +
+      '/100. (Su ' +
+      sc.water +
+      '/25, egzersiz ' +
+      sc.exercise +
+      '/35, kalori dengesi ' +
+      sc.calorie +
+      '/25, kilo/BMI bilgisi ' +
+      sc.weightBmi +
+      '/15.) ' +
+      scoreSummaryLine(sc);
+
+    var rec =
+      buildSmartDailyRecommendation() +
+      (ins.hasTracking ? '' : ' Daha net öneriler için bugünkü kalori, su ve egzersizi güncellemeyi deneyebilirsin.');
+
+    return formatAiReply(status, rec, randomMotivationPick());
+  }
+
+  function buildMotivationAnswerText() {
+    var ins = getFitnessInsights();
+    var sc = computeDailyFitTrackScore();
+    var status =
+      'Motivasyon için önce küçük bir kazanın seçmek işe yarar. FitTrack skorun ' +
+      sc.total +
+      '/100; verdiğin kayıtlar zaten bir yön gösteriyor.';
+
+    var recParts = [];
+    if (ins.exerciseGoal > 0 && ins.exerciseMinutes < ins.exerciseGoal) {
+      recParts.push('Bugün için 10 dakikalık bir yürüyüş bile momentumu geri getirir.');
+    }
+    if (ins.waterGoal > 0 && ins.waterGlasses < ins.waterGoal) {
+      recParts.push('Su içmek basit bir “kazan kontrol listesi” öğesi olabilir.');
+    }
+    if (recParts.length === 0) {
+      recParts.push('Kayıtlarına bakıp tek bir alanı (su veya hareket) seçip bugün tamamlamaya odaklan.');
+    }
+
+    return formatAiReply(status, recParts.slice(0, 2).join(' '), randomMotivationPick());
+  }
+
+  function buildGapsAnswerText() {
+    var gaps = collectGapBullets();
+    var status = 'Kayıtlarına göre öne çıkan boşluklar bunlar:';
+    var rec =
+      gaps.map(function (g, idx) {
+        return idx + 1 + ') ' + g;
+      }).join('\n') +
+      '\n\n' +
+      buildSmartDailyRecommendation();
+
+    return formatAiReply(status, rec, randomMotivationPick());
+  }
+
+  function buildProgressAnswerText() {
+    var ins = getFitnessInsights();
+    var lines = [];
+    if (ins.calorieGoal > 0) {
+      var cp = Math.round(Math.min(100, (ins.caloriesConsumed / ins.calorieGoal) * 100));
+      lines.push('Kalori hedefine yaklaşık %' + cp + ' mesafede görünüyorsun (' + ins.caloriesConsumed + '/' + ins.calorieGoal + ' kcal).');
+    }
+    if (ins.waterGoal > 0) {
+      var wp = Math.round(Math.min(100, (ins.waterGlasses / ins.waterGoal) * 100));
+      lines.push('Su hedefin yaklaşık %' + wp + ' (' + ins.waterGlasses + '/' + ins.waterGoal + ' bardak).');
+    }
+    if (ins.exerciseGoal > 0) {
+      var ep = Math.round(Math.min(100, (ins.exerciseMinutes / ins.exerciseGoal) * 100));
+      lines.push('Egzersiz payın yaklaşık %' + ep + ' (' + ins.exerciseMinutes + '/' + ins.exerciseGoal + ' dk).');
+    }
+    if (Number.isFinite(ins.currentWeight) && Number.isFinite(ins.goalWeight)) {
+      var diff = ins.currentWeight - ins.goalWeight;
+      if (Math.abs(diff) < 0.05) {
+        lines.push('Kilo ve hedef kilon birbirine çok yakın görünüyor.');
+      } else if (diff > 0) {
+        lines.push(
+          'Hedef kilona göre yaklaşık ' +
+            Math.abs(diff).toFixed(1) +
+            ' kg fark var (genel takip çerçevesinde).'
+        );
+      } else {
+        lines.push('Kayıtlı hedef kilonun üzerindesin; bu yalnızca rakamsal fark olarak not edilir.');
+      }
+    }
+
+    if (lines.length === 0) {
+      lines.push(
+        'Hedeflerini görebilmem için ayarlardaki kalori / su / egzersiz hedefleri ve kilo bilgisini güncel tutman yeterli.'
+      );
+    }
+
+    var sc = computeDailyFitTrackScore();
+    var status =
+      'Hedeflerine uzaklık günlük kayıtlar üzerinden kabaca şöyle özetlenebilir: ' +
+      lines.join(' ') +
+      ' Günlük FitTrack skorun ' +
+      sc.total +
+      '/100.';
+
+    return formatAiReply(status, buildSmartDailyRecommendation(), randomMotivationPick());
+  }
+
+  function buildDailySummaryAnswerText() {
+    var ins = getFitnessInsights();
+    var sc = computeDailyFitTrackScore();
+    var bits = [];
+    bits.push('FitTrack skoru ' + sc.total + '/100.');
+    if (ins.calorieGoal > 0) {
+      bits.push('Kalori ' + ins.caloriesConsumed + '/' + ins.calorieGoal + ' kcal.');
+    }
+    if (ins.waterGoal > 0) {
+      bits.push('Su ' + ins.waterGlasses + '/' + ins.waterGoal + ' bardak.');
+    }
+    if (ins.exerciseGoal > 0) {
+      bits.push('Egzersiz ' + ins.exerciseMinutes + '/' + ins.exerciseGoal + ' dk.');
+    }
+    var status =
+      'Bugünün genel görünümü: ' + bits.join(' ') + ' ' + scoreSummaryLine(sc);
+
+    return formatAiReply(status, buildSmartDailyRecommendation(), randomMotivationPick());
+  }
+
+  function buildWeeklyAnswerText() {
+    var wb = getWeekActivityData();
+    var t = wb.totals;
+    var ins = getFitnessInsights();
+
+    var status =
+      'Bu hafta toplamda yaklaşık ' +
+      t.exerciseMinutes +
+      ' dk egzersiz, ' +
+      t.water +
+      ' bardak su ve ' +
+      t.calories +
+      ' kcal kaydı görünüyor.';
+
+    var bestIdx = -1;
+    var bestEx = -1;
+    var i;
+    for (i = 0; i < wb.daily.length; i++) {
+      var ex = wb.daily[i].exerciseMinutes;
+      if (ex > bestEx) {
+        bestEx = ex;
+        bestIdx = i;
+      }
+    }
+
+    var recParts = [];
+    if (bestIdx >= 0 && bestEx > 0) {
+      recParts.push(
+        'En aktif görünen günün ' + WEEKDAY_LONG[bestIdx] + ' (' + bestEx + ' dk egzersiz); küçük tutarlılıklar haftayı taşır.'
+      );
+    } else {
+      recParts.push(
+        'Bu hafta grafikte belirgin egzersiz dakikası henüz yok; kısa yürüyüşle ilk kaydı eklemek iyi bir başlangıç olur.'
+      );
+    }
+
+    if (t.exerciseMinutes > 150) {
+      recParts.push('Haftalık hareket toplamın güçlü; dinlenme ve su takibini de sürdürmek dengeyi korur.');
+    } else if (t.exerciseMinutes > 0 && t.exerciseMinutes < 90) {
+      recParts.push('Haftalık egzersiz hâlâ ortanın altında; günlük 10–15 dk eklemeler hedefe yaklaştırır.');
+    }
+
+    if (ins.waterGoal > 0 && ins.waterGlasses < ins.waterGoal) {
+      recParts.push('Bugün su tarafında hedefe tam yaklaşmak için birkaç bardak daha ekleyebilirsin.');
+    }
+
+    return formatAiReply(status, recParts.slice(0, 3).join(' '), randomMotivationPick());
+  }
+
+  function buildWaterAnswerText() {
+    var g = state.waterGoal;
+    var cur = state.waterGlasses;
+    var sc = computeDailyFitTrackScore();
+    if (!Number.isFinite(g) || g <= 0) {
+      return formatAiReply(
+        'Su hedefin henüz tanımlı değil; bardak hedefi olunca takibi kolaylaşır.',
+        'Hedef Ayarlarından günlük bardak sayını ayarlayıp yeniden sorabilirsin.',
+        randomMotivationPick()
+      );
+    }
+    if (cur >= g) {
+      return formatAiReply(
+        'Bugün ' + cur + '/' + g + ' bardak ile su hedefini tamamlamış görünüyorsun. Günlük FitTrack skorunda su katkın tam.',
+        'Öğün aralarında da küçük yudumlar alışkanlığı sürdürmene yardım eder.',
+        randomMotivationPick()
+      );
+    }
+    var left = g - cur;
+    var pct = Math.round((cur / g) * 100);
+    return formatAiReply(
+      'Bugün su hedefinin yaklaşık %' +
+        pct +
+        "'sini tamamladın (" +
+        cur +
+        '/' +
+        g +
+        ' bardak). Günlük skorda su katkın ' +
+        sc.water +
+        '/25.',
+      left +
+        ' bardak daha eklemek hedefe yaklaştırır; telefonuna basit bir hatırlatıcı koymak işe yarayabilir.',
+      randomMotivationPick()
+    );
+  }
+
+  function buildExerciseAnswerText() {
+    var goal = state.exerciseGoalMinutes;
+    var min = totalExerciseMinutes();
+    var sc = computeDailyFitTrackScore();
+    if (!Number.isFinite(goal) || goal <= 0) {
+      return formatAiReply(
+        'Günlük egzersiz dakika hedefi ayarlanmadığı için bugünkü payını yüzde olarak netleştiremiyorum.',
+        'Hedefi tanımlayıp kısa bir yürüyüş veya esneme ile başlayabilirsin.',
+        randomMotivationPick()
+      );
+    }
+    if (min >= goal) {
+      return formatAiReply(
+        'Bugün ' +
+          min +
+          '/' +
+          goal +
+          ' dk ile egzersiz hedefini tamamlamışsın; skorda egzersiz katkın ' +
+          sc.exercise +
+          '/35.',
+        'İstersen düşük şiddette mobilite veya esneme ile günü yumuşakça kapatabilirsin.',
+        randomMotivationPick()
+      );
+    }
+    var left = goal - min;
+    return formatAiReply(
+      'Şu an ' +
+        min +
+        ' dk hareket kaydın var; günlük hedefin ' +
+        goal +
+        ' dk ve yaklaşık ' +
+        left +
+        ' dk pay kaldı. Skorda egzersiz katkın ' +
+        sc.exercise +
+        '/35.',
+      '• 10 dk tempolu yürüyüş\n• 5–8 dk esneme\n• Kısa merdiven / hafif tempolu hareket\nBu seçeneklerden biri günü dengeler.',
+      randomMotivationPick()
+    );
+  }
+
+  function buildCalorieAnswerText() {
+    var goal = state.calorieGoal;
+    var c = state.caloriesConsumed;
+    var sc = computeDailyFitTrackScore();
+    if (!Number.isFinite(goal) || goal <= 0) {
+      return formatAiReply(
+        'Kalori hedefi tanımlı değil; günlük dengeni yüzde olarak yorumlamak zor.',
+        'Hedefini girip öğün kayıtlarını güncellediğinde daha net geri bildirim verebilirim.',
+        randomMotivationPick()
+      );
+    }
+    if (c > goal) {
+      return formatAiReply(
+        'Bugün ' +
+          c +
+          '/' +
+          goal +
+          ' kcal kaydı var; hedefin biraz üzerindesin. Kalori dengesi skor katkın ' +
+          sc.calorie +
+          '/25.',
+        'Günün kalanında doyurucu ama daha hafif seçimler ve tek porsiyon odaklı kararlar dengeyi kolaylaştırır.',
+        randomMotivationPick()
+      );
+    }
+    if (c > 0 && c < goal * 0.35) {
+      return formatAiReply(
+        'Bugün ' +
+          c +
+          '/' +
+          goal +
+          ' kcal görünüyor; hedefe göre giriş düşük kalabilir (kayıtları doğrulamak iyi olur). Kalori skor katkın ' +
+          sc.calorie +
+          '/25.',
+        'Öğün atlama yerine düzenli ve dengeli öğünleri tahmini olarak işaretlemek takibi düzeltir.',
+        randomMotivationPick()
+      );
+    }
+    if (c <= 0) {
+      return formatAiReply(
+        'Bugün için henüz kalori kaydı yok; kalori skor katkın düşük başlıyor.',
+        'İlk öğününden sonra yaklaşık değeri eklemek günlük görünümü netleştirir.',
+        randomMotivationPick()
+      );
+    }
+    var pct = Math.round((c / goal) * 100);
+    return formatAiReply(
+      'Kalori kaydın ' +
+        c +
+        '/' +
+        goal +
+        ' kcal (yaklaşık %' +
+        pct +
+        '). Dengeli bir aralıkta görünüyorsun; kalori skor katkın ' +
+        sc.calorie +
+        '/25.',
+        'Aynı tempoda protein-lif dengesine dikkat etmek gün boyu tokluğu destekler (genel yaşam tarzı önerisi).',
+      randomMotivationPick()
+    );
+  }
+
+  function buildWeightBmiAnswerText() {
+    var cur = state.currentWeight;
+    var gw = state.goalWeight;
+    var bmi = computeBmi(cur, state.heightCm);
+    var sc = computeDailyFitTrackScore();
+
+    var statusParts = [];
+    if (Number.isFinite(cur)) {
+      statusParts.push('Mevcut kilon yaklaşık ' + cur + ' kg.');
+    } else {
+      statusParts.push('Güncel kilo kaydı yok; kilo/BMI skor katkın sınırlı kalır.');
+    }
+    if (Number.isFinite(gw)) {
+      statusParts.push('Kayıtlı hedef kilon ' + gw + ' kg.');
+    }
+
+    if (bmi !== null) {
+      var cat = bmiCategoryLabel(bmi);
+      statusParts.push(
+        'BMI yaklaşık ' +
+          bmi +
+          ' (FitTrack referans etiketi: ' +
+          cat +
+          '). Skorda kilo/BMI katkısı ' +
+          sc.weightBmi +
+          '/15.'
+      );
+      if (cat === 'Normal') {
+        statusParts.push('Bu genel bir referanstır; mevcut rutini sürdürmek ve su/hareketi korumak mantıklı.');
+      } else {
+        statusParts.push(
+          'Bu yalnızca genel çerçevedir; sürdürülebilir tempoda beslenme ve hareket düzenine odaklanmak uzun vadede daha rahattır.'
+        );
+      }
+    } else {
+      statusParts.push('BMI için hem kilo hem boy (cm) gerekiyor; bilgi tamamlanınca özet netleşir.');
+    }
+
+    var rec =
+      'Kişisel hedefler için uzman görüşü her zaman değerlidir; FitTrack verilerini düzenli güncellemek genel yaşam tarzı takibini kolaylaştırır.';
+
+    return formatAiReply(statusParts.join(' '), rec, randomMotivationPick());
+  }
+
+  function buildGeneralPlanAnswerText() {
+    var tips = generateAiSuggestions().slice(0, 3);
+    var pad = [
+      'Kısa molalarda su içmeyi hatırlayabilirsin.',
+      '10 dakikalık bir yürüyüş günü ferahlatır.',
+      'Kayıtlarını gün sonunda gözden geçirmek motivasyonunu güçlendirir.'
+    ];
+    var i = 0;
+    while (tips.length < 3 && i < pad.length) {
+      tips.push(pad[i]);
+      i++;
+    }
+
+    var sc = computeDailyFitTrackScore();
+    var bullet =
+      tips
+        .map(function (line, idx) {
+          return idx + 1 + ') ' + line;
+        })
+        .join('\n') +
+      '\n\n' +
+      buildSmartDailyRecommendation();
+
+    return formatAiReply(
+      'Bugün için özet plan: günlük FitTrack skorun ' + sc.total + '/100; verilerine göre şu adımlar öne çıkıyor.',
+      bullet,
+      randomMotivationPick()
+    );
+  }
+
+  function buildUnknownAnswerText() {
+    var lines = [
+      'Bu konuda net bir analiz yapamadım. Kalori, su, egzersiz, kilo/BMI veya haftalık durumunla ilgili sorarsan daha iyi yardımcı olurum.',
+      '',
+      'Örnek sorular:',
+      '• Bugünkü durumum nasıl?',
+      '• Su hedefim ne durumda?',
+      '• Bana egzersiz önerir misin?'
+    ];
+
+    return formatAiReply(lines[0], lines.slice(2).join('\n'), randomMotivationPick());
+  }
+
+  /** Veriye göre doğal dilde cevap üretir (kural tabanlı). */
+  function answerAiQuestion(question) {
+    var cat = analyzeUserQuestion(question);
+    switch (cat) {
+      case 'empty':
+        return '';
+      case 'score':
+        return buildScoreAnswerText();
+      case 'motivation':
+        return buildMotivationAnswerText();
+      case 'gaps':
+        return buildGapsAnswerText();
+      case 'progress':
+        return buildProgressAnswerText();
+      case 'daily_summary':
+        return buildDailySummaryAnswerText();
+      case 'weekly':
+        return buildWeeklyAnswerText();
+      case 'water':
+        return buildWaterAnswerText();
+      case 'exercise':
+        return buildExerciseAnswerText();
+      case 'calorie':
+        return buildCalorieAnswerText();
+      case 'weight':
+        return buildWeightBmiAnswerText();
+      case 'general':
+        return buildGeneralPlanAnswerText();
+      default:
+        return buildUnknownAnswerText();
+    }
+  }
+
+  /** @param {'user'|'bot'} type */
+  function renderChatMessage(type, text, skipPersist) {
+    if (!aiChatBox || text === undefined || text === null || text === '') return;
+
+    var wrap = document.createElement('div');
+    wrap.className = 'ai-message ' + (type === 'user' ? 'ai-message-user' : 'ai-message-bot');
+
+    var label = document.createElement('div');
+    label.className = 'ai-message-label';
+    label.textContent = type === 'user' ? 'Sen' : 'FitTrack AI';
+
+    var body = document.createElement('div');
+    body.className = 'ai-message-body';
+    body.textContent = text;
+
+    wrap.appendChild(label);
+    wrap.appendChild(body);
+    aiChatBox.appendChild(wrap);
+    scrollChatToBottom();
+
+    if (!skipPersist) {
+      appendAiChatRecord(type === 'user' ? 'user' : 'bot', text);
+    }
+  }
+
+  function handleAiQuestionSubmit(event) {
+    if (event && event.preventDefault) event.preventDefault();
+    if (!aiQuestionInput) return;
+    if (aiChatBusy) return;
+
+    var q = aiQuestionInput.value.trim();
+    if (!q) {
+      showToast('Lütfen asistana bir soru yaz.', false);
+      aiQuestionInput.focus();
+      return;
+    }
+
+    renderChatMessage('user', q);
+    aiQuestionInput.value = '';
+    tryCloudAiThenFallback(q, buildChatHistoryForOpenAI, answerAiQuestion);
+  }
+
+  function buildLocalSuggestReply() {
+    var items = generateAiSuggestions().slice(0, 4);
+    var smart = buildSmartDailyRecommendation();
+    var sc = computeDailyFitTrackScore();
+    var bullets = items
+      .map(function (line, idx) {
+        return idx + 1 + ') ' + line;
+      })
+      .join('\n');
+
+    return formatAiReply(
+      'Kayıtlarına göre günlük FitTrack skorun ' + sc.total + '/100; aşağıdaki maddeler bugün için öne çıkıyor.',
+      bullets + (smart ? '\n\nEk günlük öneri: ' + smart : ''),
+      randomMotivationPick()
+    );
+  }
+
+  function handleAiSuggestClick() {
+    if (aiChatBusy) return;
+    var prompt =
+      'Güncel FitTrack verilerime göre bugün için Durum, Öneri ve Motivasyon başlıklarıyla kısa ve net bir özet ver. "Öneri Al" düğmesine basıldı.';
+    tryCloudAiThenFallback(prompt, buildChatHistoryForOpenAISuggest, function () {
+      return buildLocalSuggestReply();
+    });
+  }
+
   /** Haftalık grafik ve özet (activityHistory + bugünün canlı verisi) */
   function renderWeeklyReport() {
     var root = document.getElementById('week-chart-root');
@@ -713,18 +1795,22 @@
 
     sumEl.innerHTML = '';
     var p1 = document.createElement('p');
+    p1.className = 'weekly-stat-card';
     p1.textContent = 'Bu hafta toplam ' + totals.exerciseMinutes + ' dakika egzersiz yaptın.';
     sumEl.appendChild(p1);
 
     var p2 = document.createElement('p');
+    p2.className = 'weekly-stat-card';
     p2.textContent = 'Bu hafta toplam ' + totals.water + ' bardak su içtin.';
     sumEl.appendChild(p2);
 
     var p3 = document.createElement('p');
+    p3.className = 'weekly-stat-card';
     p3.textContent = 'Bu hafta toplam ' + totals.calories + ' kcal kaydettin.';
     sumEl.appendChild(p3);
 
     var p4 = document.createElement('p');
+    p4.className = 'weekly-stat-card';
     if (bestIdx >= 0) {
       p4.textContent = 'En aktif günün ' + WEEKDAY_LONG[bestIdx] + ' oldu.';
     } else {
@@ -859,6 +1945,22 @@
     renderBadges();
     renderBMI();
     renderWeeklyReport();
+    updateHeroQuickStats();
+  }
+
+  /** Hero özet kartları (dashboard ile aynı veri, ekstra id ile senkron). */
+  function updateHeroQuickStats() {
+    if (!heroStatCal && !heroStatWater && !heroStatEx) return;
+    var minutes = totalExerciseMinutes();
+    if (heroStatCal) {
+      heroStatCal.textContent = state.caloriesConsumed + ' / ' + state.calorieGoal + ' kcal';
+    }
+    if (heroStatWater) {
+      heroStatWater.textContent = state.waterGlasses + ' / ' + state.waterGoal + ' bardak';
+    }
+    if (heroStatEx) {
+      heroStatEx.textContent = minutes + ' / ' + state.exerciseGoalMinutes + ' dk';
+    }
   }
 
   /** Günün motivasyon cümlesi */
@@ -1168,9 +2270,51 @@
 
   if (btnStartToday) {
     btnStartToday.addEventListener('click', function () {
-      var target = document.getElementById('dashboard');
+      var target = document.getElementById('takip');
       if (!target) return;
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  if (btnWeeklyReport) {
+    btnWeeklyReport.addEventListener('click', function () {
+      var rap = document.getElementById('rapor');
+      if (!rap) return;
+      rap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  if (btnAiSuggest) {
+    btnAiSuggest.addEventListener('click', handleAiSuggestClick);
+  }
+
+  if (btnAiChatClear) {
+    btnAiChatClear.addEventListener('click', function () {
+      clearAiChatHistory();
+    });
+  }
+
+  var quickBtns = document.querySelectorAll('[data-ai-quick]');
+  for (var qi = 0; qi < quickBtns.length; qi++) {
+    quickBtns[qi].addEventListener('click', function () {
+      var qt = this.getAttribute('data-ai-quick');
+      if (!qt || aiChatBusy) return;
+      renderChatMessage('user', qt);
+      tryCloudAiThenFallback(qt, buildChatHistoryForOpenAI, answerAiQuestion);
+    });
+  }
+
+  if (aiQuestionForm) {
+    aiQuestionForm.addEventListener('submit', handleAiQuestionSubmit);
+  }
+
+  if (aiQuestionInput) {
+    aiQuestionInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (aiChatBusy) return;
+        if (aiQuestionForm) aiQuestionForm.requestSubmit();
+      }
     });
   }
 
@@ -1178,4 +2322,24 @@
 
   pickMotivation();
   render();
+  restoreAiChatFromStorage();
+
+  /**
+   * Dış (auth.js) tarafından çağrılan yeniden yükleme kancası.
+   * Giriş / çıkış sonrası yeni kullanıcının `fittrack_state_v1_<id>` verisi yüklenir
+   * ve tüm ekran (dashboard, takip, rapor, AI sohbeti) yeni veriyle yeniden çizilir.
+   */
+  function reloadForUserChange() {
+    state = loadState();
+    pickMotivation();
+    render();
+    if (aiChatBox) aiChatBox.innerHTML = '';
+    removeTypingIndicator();
+    restoreAiChatFromStorage();
+  }
+
+  window.FitTrackApp = window.FitTrackApp || {};
+  window.FitTrackApp.reload = reloadForUserChange;
+
+  window.addEventListener('fittrack:user-change', reloadForUserChange);
 })();

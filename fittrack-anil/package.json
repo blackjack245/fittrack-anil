@@ -1,0 +1,13 @@
+{
+  "name": "fittrack-anil",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "FitTrack — fitness takip ve Netlify üzerinden OpenAI destekli asistan",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "openai": "^4.73.0"
+  }
+}
