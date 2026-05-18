@@ -6,6 +6,7 @@
   <meta name="description" content="FitTrack — Günlük kalori, su, egzersiz ve kilo takibi." />
   <title>FitTrack — Fitness Takip Sistemi</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="platform.css" />
 </head>
 <body>
   <div class="background-scene" aria-hidden="true">
@@ -61,12 +62,13 @@
 
   <header class="site-header">
     <div class="header-inner">
-      <a href="#dashboard" class="logo" aria-label="FitTrack — Dashboard bölümüne git">Fit<span>Track</span></a>
-      <nav class="main-nav" aria-label="Sayfa bölümleri">
-        <a href="#dashboard">Dashboard</a>
-        <a href="#takip">Takip</a>
-        <a href="#hedef-saglik">Hedefler</a>
-        <a href="#asistan">Asistan</a>
+      <a href="#ana-sayfa" class="logo" aria-label="FitTrack — Ana sayfaya git">Fit<span>Track</span></a>
+      <nav class="main-nav platform-nav" aria-label="Sayfa bölümleri">
+        <a href="#ana-sayfa">Ana Sayfa</a>
+        <a href="#antrenorler">Antrenörler</a>
+        <a href="#ai-koc">AI Koç</a>
+        <a href="#yemek-onerisi">Yemek Önerisi</a>
+        <a href="#supplement">Supplement</a>
         <a href="#rapor">Rapor</a>
       </nav>
       <div class="nav-auth" id="nav-auth" aria-label="Hesap işlemleri">
@@ -122,7 +124,7 @@
 
   <main id="main-content">
     <!-- Hero -->
-    <section class="hero hero-modern hero-studio" aria-labelledby="hero-title">
+    <section id="ana-sayfa" class="hero hero-modern hero-studio section-anchor" aria-labelledby="hero-title">
       <div class="hero-shell">
         <div class="hero-copy">
           <p class="hero-badge hero-badge-studio">
@@ -342,18 +344,61 @@
       </div>
     </section>
 
+    <!-- Antrenörler -->
+    <section id="antrenorler" class="section platform-section coaches-section section-anchor" aria-labelledby="coaches-heading">
+      <header class="section-head section-head-tight section-head-studio">
+        <span class="section-label">
+          <span class="section-label-num">02</span>
+          <span class="section-label-divider" aria-hidden="true"></span>
+          <span class="section-label-name">Antrenörler</span>
+        </span>
+        <h2 id="coaches-heading">Uzman Antrenör Kadrosu</h2>
+        <p class="section-sub">Alan uzmanlarından danışmanlık al; giriş yaptıktan sonra AI Koç ile planını kişiselleştir.</p>
+      </header>
+      <div class="platform-card-grid coaches-grid">
+        <article class="platform-card coach-card">
+          <div class="coach-avatar" aria-hidden="true">💪</div>
+          <p class="platform-card-role">Strength Coach</p>
+          <h3>Ayşe Kaya</h3>
+          <p class="platform-card-desc">Kuvvet antrenmanı, form düzeltme ve progresif yüklenme.</p>
+          <button type="button" class="btn btn-primary btn-small" data-coach-consult data-coach-name="Ayşe Kaya — Strength Coach">Antrenöre Danış</button>
+        </article>
+        <article class="platform-card coach-card">
+          <div class="coach-avatar" aria-hidden="true">🏃</div>
+          <p class="platform-card-role">Cardio Coach</p>
+          <h3>Emre Yıldız</h3>
+          <p class="platform-card-desc">Kardiyo kapasitesi, interval ve dayanıklılık planı.</p>
+          <button type="button" class="btn btn-primary btn-small" data-coach-consult data-coach-name="Emre Yıldız — Cardio Coach">Antrenöre Danış</button>
+        </article>
+        <article class="platform-card coach-card">
+          <div class="coach-avatar" aria-hidden="true">🥗</div>
+          <p class="platform-card-role">Nutrition Coach</p>
+          <h3>Zeynep Arslan</h3>
+          <p class="platform-card-desc">Makro dengesi ve sürdürülebilir beslenme alışkanlıkları.</p>
+          <button type="button" class="btn btn-primary btn-small" data-coach-consult data-coach-name="Zeynep Arslan — Nutrition Coach">Antrenöre Danış</button>
+        </article>
+        <article class="platform-card coach-card">
+          <div class="coach-avatar" aria-hidden="true">🎯</div>
+          <p class="platform-card-role">Personal Trainer</p>
+          <h3>Can Demir</h3>
+          <p class="platform-card-desc">Bire bir hedef takibi ve haftalık check-in.</p>
+          <button type="button" class="btn btn-primary btn-small" data-coach-consult data-coach-name="Can Demir — Personal Trainer">Antrenöre Danış</button>
+        </article>
+      </div>
+    </section>
+
     <!-- Dashboard -->
     <section id="dashboard" class="section dashboard-section section-anchor" aria-labelledby="dash-heading">
       <header class="section-head section-head-tight section-head-studio">
         <span class="section-label">
-          <span class="section-label-num">02</span>
+          <span class="section-label-num">03</span>
           <span class="section-label-divider" aria-hidden="true"></span>
           <span class="section-label-name">Dashboard</span>
         </span>
         <h2 id="dash-heading">Dashboard</h2>
         <p class="section-sub">Bugünkü ilerlemeni tek bakışta gör; kartlar mobilde alt alta sıralanır.</p>
       </header>
-      <div class="card-grid card-grid-4 stat-cards-unified">
+      <div class="card-grid card-grid-dash-extended stat-cards-unified">
         <article class="stat-card stat-card-dashboard" aria-labelledby="stat-cal-title">
           <div class="stat-card-icon stat-cal" aria-hidden="true"></div>
           <h3 id="stat-cal-title">Kalori</h3>
@@ -376,12 +421,23 @@
           <div class="mini-bar mini-bar-ex" aria-hidden="true"><span id="dash-ex-bar"></span></div>
           <p class="stat-card-hint">Toplam süre günlük dakika hedefine göre gösterilir.</p>
         </article>
-        <article class="stat-card stat-card-dashboard" aria-labelledby="stat-weight-title">
-          <div class="stat-card-icon stat-weight" aria-hidden="true"></div>
-          <h3 id="stat-weight-title">Kilo · BMI özeti</h3>
-          <p class="stat-value"><span id="dash-weight-current">—</span> kg → <span id="dash-weight-goal">—</span> kg</p>
-          <p class="stat-hint" id="dash-weight-progress">İlerleme hesaplanıyor…</p>
-          <p class="stat-card-hint">Detaylı BMI için aşağıdaki sağlık bölümüne göz at.</p>
+        <article class="stat-card stat-card-dashboard stat-card-fit" aria-labelledby="stat-fit-title">
+          <div class="stat-card-icon stat-ex" aria-hidden="true"></div>
+          <h3 id="stat-fit-title">Fit Skoru</h3>
+          <p class="stat-value"><span id="dash-fit-score">0</span> / 100</p>
+          <p class="stat-card-hint">Su, egzersiz, kalori ve kilo/BMI verilerinden hesaplanır.</p>
+        </article>
+        <article class="stat-card stat-card-dashboard" aria-labelledby="stat-weekly-title">
+          <div class="stat-card-icon stat-cal" aria-hidden="true"></div>
+          <h3 id="stat-weekly-title">Haftalık İlerleme</h3>
+          <p class="dash-weekly-mini" id="dash-weekly-mini">Bu hafta veri bekleniyor…</p>
+          <a class="dash-link" href="#rapor">Detaylı rapor →</a>
+        </article>
+        <article class="stat-card stat-card-dashboard" aria-labelledby="stat-ai-tip-title">
+          <div class="stat-card-icon stat-water" aria-hidden="true"></div>
+          <h3 id="stat-ai-tip-title">AI Önerisi</h3>
+          <p class="dash-ai-tip-text" id="dash-ai-tip">Kayıt ekledikçe kişisel öneriler burada görünür.</p>
+          <a class="dash-link" href="#ai-koc">AI Koç'a git →</a>
         </article>
       </div>
     </section>
@@ -390,7 +446,7 @@
     <section id="takip" class="section gunluk-takip-section section-anchor" aria-labelledby="takip-heading">
       <header class="section-head section-head-tight section-head-studio">
         <span class="section-label">
-          <span class="section-label-num">03</span>
+          <span class="section-label-num">04</span>
           <span class="section-label-divider" aria-hidden="true"></span>
           <span class="section-label-name">Günlük Takip</span>
         </span>
@@ -536,7 +592,7 @@
     <section id="ozet" class="section summary-section section-anchor" aria-labelledby="summary-heading">
       <header class="section-head section-head-tight section-head-studio">
         <span class="section-label">
-          <span class="section-label-num">04</span>
+          <span class="section-label-num">05</span>
           <span class="section-label-divider" aria-hidden="true"></span>
           <span class="section-label-name">Günün Özeti</span>
         </span>
@@ -555,7 +611,7 @@
     <section id="hedef-saglik" class="section goals-health-section section-anchor" aria-labelledby="goals-health-heading">
       <header class="section-head section-head-tight section-head-studio">
         <span class="section-label">
-          <span class="section-label-num">05</span>
+          <span class="section-label-num">06</span>
           <span class="section-label-divider" aria-hidden="true"></span>
           <span class="section-label-name">Hedefler &amp; Sağlık</span>
         </span>
@@ -686,29 +742,39 @@
     </section>
 
     <!-- Akıllı asistan -->
-    <section id="asistan" class="section ai-section-wrap section-anchor" aria-labelledby="ai-heading">
+    <section id="ai-koc" class="section ai-section-wrap section-anchor platform-section" aria-labelledby="ai-heading">
       <div class="ai-assistant ai-assistant-featured">
         <div class="ai-card">
           <span class="section-label section-label-inline">
-            <span class="section-label-num">06</span>
+            <span class="section-label-num">07</span>
             <span class="section-label-divider" aria-hidden="true"></span>
-            <span class="section-label-name">AI Coach</span>
+            <span class="section-label-name">AI Koç</span>
           </span>
           <div class="ai-card-head">
             <span class="ai-icon" aria-hidden="true">🤖</span>
             <div class="ai-card-titles">
-              <h2 id="ai-heading">Akıllı Fitness Asistanı</h2>
+              <h2 id="ai-heading">AI Fitness Coach</h2>
               <p class="ai-intro">
-                Asistan önce güvenli Netlify Function üzerinden OpenAI ile yanıt üretmeyi dener; servis erişilemezse kural tabanlı yerel önerilere geçer. API anahtarı tarayıcıda tutulmaz.
+                Antrenman, hedef, haftalık plan, kardiyo, dinlenme ve motivasyon konularında yardımcı olur. Teşhis, ilaç veya steroid önermez; ciddi sağlık durumlarında doktora yönlendirir.
               </p>
             </div>
           </div>
 
-          <div class="ai-chat" aria-label="Asistan sohbet alanı">
+          <div class="platform-coach-topics" role="group" aria-label="AI koç konuları">
+            <button type="button" class="ai-chip" data-platform-coach="Bana genel bir antrenman programı öner">Antrenman programı</button>
+            <button type="button" class="ai-chip" data-platform-coach="Kilo verme hedefim için ne yapmalıyım?">Kilo verme</button>
+            <button type="button" class="ai-chip" data-platform-coach="Kas kazanma hedefim için öneri ver">Kas kazanma</button>
+            <button type="button" class="ai-chip" data-platform-coach="Haftalık egzersiz planı oluştur">Haftalık plan</button>
+            <button type="button" class="ai-chip" data-platform-coach="Kardiyo önerisi ver">Kardiyo</button>
+            <button type="button" class="ai-chip" data-platform-coach="Dinlenme günü nasıl olmalı?">Dinlenme günü</button>
+            <button type="button" class="ai-chip" data-platform-coach="Motivasyon mesajı ver">Motivasyon</button>
+          </div>
+
+          <div class="ai-chat" aria-label="AI koç sohbet alanı">
             <div class="ai-chat-box" id="ai-chat-box" role="log" aria-relevant="additions" tabindex="0"></div>
           </div>
 
-          <div class="ai-quick-questions" role="group" aria-label="Hazır sorular">
+          <div class="ai-quick-questions" role="group" aria-label="Veri tabanlı hazır sorular">
             <button type="button" class="ai-chip" data-ai-quick="Bugünkü durumumu analiz et">Bugünkü durumumu analiz et</button>
             <button type="button" class="ai-chip" data-ai-quick="Eksiklerim neler?">Eksiklerim neler?</button>
             <button type="button" class="ai-chip" data-ai-quick="Bana egzersiz öner">Bana egzersiz öner</button>
@@ -743,10 +809,121 @@
             </div>
           </form>
 
-          <p class="ai-note" id="ai-note">
-            Bu öneriler genel bilgilendirme amaçlıdır; tıbbi tavsiye yerine geçmez.
+          <p class="ai-note platform-disclaimer" id="ai-note">
+            Bu öneriler genel bilgilendirme amaçlıdır; tıbbi teşhis, ilaç veya steroid tavsiyesi değildir. Sakatlık veya kronik hastalıkta doktorunuza danışın.
           </p>
         </div>
+      </div>
+    </section>
+
+    <!-- AI Yemek Önerisi -->
+    <section id="yemek-onerisi" class="section platform-section meal-section section-anchor" aria-labelledby="meal-heading">
+      <header class="section-head section-head-tight section-head-studio">
+        <span class="section-label">
+          <span class="section-label-num">08</span>
+          <span class="section-label-divider" aria-hidden="true"></span>
+          <span class="section-label-name">AI Yemek</span>
+        </span>
+        <h2 id="meal-heading">AI Yemek Önerisi</h2>
+        <p class="section-sub">Hedefine göre öğün önerisi al. Şimdilik akıllı kural motoru; ileride OpenAI API bağlanabilir.</p>
+      </header>
+      <div class="meal-form-panel">
+        <form id="meal-recommend-form" novalidate>
+          <div class="meal-form-grid">
+            <label>
+              Hedef
+              <select id="meal-goal" required>
+                <option value="kilo verme">Kilo verme</option>
+                <option value="kas kazanma">Kas kazanma</option>
+                <option value="form koruma" selected>Form koruma</option>
+              </select>
+            </label>
+            <label>
+              Öğün türü
+              <select id="meal-type" required>
+                <option value="kahvaltı">Kahvaltı</option>
+                <option value="öğle">Öğle</option>
+                <option value="akşam">Akşam</option>
+                <option value="ara öğün">Ara öğün</option>
+              </select>
+            </label>
+            <label>
+              Kalori hedefi (kcal)
+              <input type="number" id="meal-calories" min="150" max="1200" value="450" required />
+            </label>
+            <label>
+              Protein tercihi
+              <select id="meal-protein">
+                <option value="fark etmez">Fark etmez</option>
+                <option value="yüksek protein">Yüksek protein</option>
+                <option value="vejetaryen">Vejetaryen</option>
+              </select>
+            </label>
+            <label class="span-full">
+              Alerji / istemediğin besin
+              <input type="text" id="meal-allergies" placeholder="Örn: süt, fıstık, gluten" autocomplete="off" />
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primary">Yemek Önerisi Al</button>
+        </form>
+        <div id="meal-result" class="meal-result" hidden aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- Supplement Rehberi -->
+    <section id="supplement" class="section platform-section supplement-section section-anchor" aria-labelledby="supplement-heading">
+      <header class="section-head section-head-tight section-head-studio">
+        <span class="section-label">
+          <span class="section-label-num">09</span>
+          <span class="section-label-divider" aria-hidden="true"></span>
+          <span class="section-label-name">Supplement</span>
+        </span>
+        <h2 id="supplement-heading">Supplement Rehberi</h2>
+        <p class="section-sub">Genel bilgilendirme amaçlıdır; tıbbi tavsiye veya doz önerisi değildir.</p>
+      </header>
+      <div class="platform-card-grid supplement-grid">
+        <article class="platform-card supplement-card">
+          <h3>Protein Tozu</h3>
+          <p class="supplement-use"><strong>Ne işe yarar:</strong> Günlük protein alımını desteklemek için pratik kaynak.</p>
+          <p class="supplement-caution"><strong>Kimler:</strong> Protein ihtiyacını öğünlerle tamamlayamayan aktif bireyler (genel bilgi).</p>
+          <p class="supplement-caution"><strong>Dikkat:</strong> Laktoz hassasiyeti, böbrek sorunları veya özel diyetlerde uzmana danışın.</p>
+          <p class="platform-disclaimer">Bu tıbbi tavsiye değildir. Doktor veya diyetisyene danışın.</p>
+        </article>
+        <article class="platform-card supplement-card">
+          <h3>Kreatin</h3>
+          <p class="supplement-use"><strong>Ne işe yarar:</strong> Kısa süreli yüksek şiddetli performansta destekleyici olabilir.</p>
+          <p class="supplement-caution"><strong>Kimler:</strong> Direnç antrenmanı yapan yetişkinler (genel bilgi).</p>
+          <p class="supplement-caution"><strong>Dikkat:</strong> Böbrek hastalığı, hamilelik veya ilaç kullanımında doktora danışın; bol su için.</p>
+          <p class="platform-disclaimer">Bu tıbbi tavsiye değildir. Doktor veya diyetisyene danışın.</p>
+        </article>
+        <article class="platform-card supplement-card">
+          <h3>BCAA</h3>
+          <p class="supplement-use"><strong>Ne işe yarar:</strong> Dal zincirli amino asit takviyesi; antrenman döneminde tercih edilir.</p>
+          <p class="supplement-caution"><strong>Kimler:</strong> Yoğun antrenman yapanlar (protein alımı yeterliyse şart değildir).</p>
+          <p class="supplement-caution"><strong>Dikkat:</strong> Dengeli öğünlerle çoğu ihtiyaç karşılanabilir; gereksiz harcamadan kaçının.</p>
+          <p class="platform-disclaimer">Bu tıbbi tavsiye değildir. Doktor veya diyetisyene danışın.</p>
+        </article>
+        <article class="platform-card supplement-card">
+          <h3>Omega-3</h3>
+          <p class="supplement-use"><strong>Ne işe yarar:</strong> Balık yağı kaynaklı yağ asitleri; genel sağlık desteği olarak bilinir.</p>
+          <p class="supplement-caution"><strong>Kimler:</strong> Haftada yeterli yağlı balık tüketmeyenler.</p>
+          <p class="supplement-caution"><strong>Dikkat:</strong> Kan sulandırıcı ilaçlarda etkileşim riski; doktora danışın.</p>
+          <p class="platform-disclaimer">Bu tıbbi tavsiye değildir. Doktor veya diyetisyene danışın.</p>
+        </article>
+        <article class="platform-card supplement-card">
+          <h3>Multivitamin</h3>
+          <p class="supplement-use"><strong>Ne işe yarar:</strong> Vitamin/mineral açığını kapatmaya yardımcı olabilir.</p>
+          <p class="supplement-caution"><strong>Kimler:</strong> Tek tip beslenme veya yoğun dönemlerde olanlar.</p>
+          <p class="supplement-caution"><strong>Dikkat:</strong> Aşırı doz zararlı olabilir; etikete ve hekim önerisine uyun.</p>
+          <p class="platform-disclaimer">Bu tıbbi tavsiye değildir. Doktor veya diyetisyene danışın.</p>
+        </article>
+        <article class="platform-card supplement-card">
+          <h3>Kafein / Pre-workout</h3>
+          <p class="supplement-use"><strong>Ne işe yarar:</strong> Uyanıklık ve antrenman öncesi odak hissi (kısa süreli).</p>
+          <p class="supplement-caution"><strong>Kimler:</strong> Kafeine toleransı olan yetişkinler; geç saatlerde kaçının.</p>
+          <p class="supplement-caution"><strong>Dikkat:</strong> Kalp rahatsızlığı, anksiyete veya yüksek tansiyonda doktora danışın. Yasaklı madde içermeyen ürünler seçin.</p>
+          <p class="platform-disclaimer">Bu tıbbi tavsiye değildir. Doktor veya diyetisyene danışın.</p>
+        </article>
       </div>
     </section>
 
@@ -793,7 +970,7 @@
       <aside class="weekly-report panel weekly-report-modern" aria-labelledby="weekly-heading-main">
         <header class="panel-head weekly-report-head">
           <span class="section-label section-label-inline">
-            <span class="section-label-num">07</span>
+            <span class="section-label-num">10</span>
             <span class="section-label-divider" aria-hidden="true"></span>
             <span class="section-label-name">Haftalık Rapor</span>
           </span>
@@ -828,7 +1005,7 @@
     <section id="rozetler" class="section badges-section section-anchor" aria-labelledby="badges-heading">
       <div class="badges-block badges-block-featured" aria-labelledby="badges-heading">
         <span class="section-label section-label-inline section-label-center">
-          <span class="section-label-num">08</span>
+          <span class="section-label-num">11</span>
           <span class="section-label-divider" aria-hidden="true"></span>
           <span class="section-label-name">Başarı Rozetleri</span>
         </span>
@@ -1063,6 +1240,7 @@
 
   <script src="auth.js"></script>
   <script src="script.js"></script>
+  <script src="platform.js"></script>
   <script src="background-parallax.js"></script>
 </body>
 </html>

@@ -5,7 +5,8 @@
   "type": "module",
   "description": "FitTrack — fitness takip ve Netlify üzerinden OpenAI destekli asistan",
   "scripts": {
-    "dev": "netlify dev"
+    "dev": "netlify dev",
+    "test:platform": "node scripts/platform-functional-test.mjs"
   },
   "dependencies": {
     "openai": "^4.73.0"

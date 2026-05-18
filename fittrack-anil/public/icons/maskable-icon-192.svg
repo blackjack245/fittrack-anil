@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="192" height="192" role="img" aria-label="FitTrack">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a2236" />
+      <stop offset="100%" stop-color="#0a0f1c" />
+    </linearGradient>
+    <linearGradient id="line" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fb923c" />
+      <stop offset="50%" stop-color="#facc15" />
+      <stop offset="100%" stop-color="#4ade80" />
+    </linearGradient>
+    <linearGradient id="border" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fb923c" stop-opacity="0.45" />
+      <stop offset="100%" stop-color="#4ade80" stop-opacity="0.45" />
+    </linearGradient>
+  </defs>
+  <!-- Full-bleed koyu zemin; platform maskesi (circle/squircle/rounded-rect) bunu k1rpar -->
+  <rect width="64" height="64" fill="url(#bg)" />
+  <!-- Apex %70 ölçekte merkezde; safe zone (%80) içinde rahat duruyor.
+       Yuvarlak maskelerde bile semboldeki dot ve squircle kenar1 kesilmiyor. -->
+  <g transform="translate(9.6 9.6) scale(0.7)">
+    <rect x="3" y="3" width="58" height="58" rx="16" fill="url(#bg)" stroke="url(#border)" stroke-width="1.5" />
+    <path d="M10 40 L18 40 L21 32 L25 46 L29 22 L33 34 L40 28 L50 14" fill="none" stroke="url(#line)" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.3" />
+    <path d="M10 40 L18 40 L21 32 L25 46 L29 22 L33 34 L40 28 L50 14" fill="none" stroke="url(#line)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
+    <circle cx="50" cy="14" r="4.4" fill="#4ade80" opacity="0.28" />
+    <circle cx="50" cy="14" r="2.4" fill="#4ade80" />
+    <circle cx="50" cy="14" r="1.1" fill="#ffffff" />
+  </g>
+</svg>

@@ -1608,6 +1608,21 @@
 
   /** Veriye göre doğal dilde cevap üretir (kural tabanlı). */
   function answerAiQuestion(question) {
+    if (window.FT_SAFETY && window.FT_SAFETY.isBlocked(question)) {
+      return window.FT_SAFETY.blockedReply();
+    }
+    if (window.FT_SAFETY && window.FT_SAFETY.needsDoctorWarning(question)) {
+      var platformAns =
+        window.FT_COACH && window.FT_COACH.tryAnswer
+          ? window.FT_COACH.tryAnswer(question)
+          : null;
+      var prefix = window.FT_SAFETY.doctorWarningPrefix();
+      if (platformAns) return prefix + platformAns;
+    }
+    if (window.FT_COACH && typeof window.FT_COACH.tryAnswer === 'function') {
+      var coachAns = window.FT_COACH.tryAnswer(question);
+      if (coachAns) return coachAns;
+    }
     var cat = analyzeUserQuestion(question);
     switch (cat) {
       case 'empty':
@@ -1865,9 +1880,15 @@
     var exP = (minutes / exGoal) * 100;
     dashExBar.style.width = clampPercent(exP) + '%';
 
-    dashWeightCurrent.textContent = Number.isFinite(state.currentWeight) ? state.currentWeight : '—';
-    dashWeightGoal.textContent = Number.isFinite(state.goalWeight) ? state.goalWeight : '—';
-    dashWeightProgress.textContent = weightProgressText();
+    if (dashWeightCurrent) {
+      dashWeightCurrent.textContent = Number.isFinite(state.currentWeight) ? state.currentWeight : '—';
+    }
+    if (dashWeightGoal) {
+      dashWeightGoal.textContent = Number.isFinite(state.goalWeight) ? state.goalWeight : '—';
+    }
+    if (dashWeightProgress) {
+      dashWeightProgress.textContent = weightProgressText();
+    }
 
     calConsumed.textContent = state.caloriesConsumed;
     calGoalDisplay.textContent = state.calorieGoal;
@@ -1946,6 +1967,35 @@
     renderBMI();
     renderWeeklyReport();
     updateHeroQuickStats();
+    try {
+      window.dispatchEvent(new CustomEvent('fittrack:render'));
+    } catch (e) {}
+  }
+
+  function getWeekSummaryLine() {
+    var week = getWeekActivityData();
+    var t = week.totals;
+    if (!t.exerciseMinutes && !t.calories && !t.water) {
+      return 'Bu hafta henüz kayıt yok. Takip bölümünden veri ekleyebilirsin.';
+    }
+    return (
+      t.exerciseMinutes +
+      ' dk egzersiz · ' +
+      t.calories +
+      ' kcal · ' +
+      t.water +
+      ' bardak su (bu hafta)'
+    );
+  }
+
+  function askCoach(question) {
+    var q = String(question || '').trim();
+    if (!q) return;
+    var section = document.getElementById('ai-koc');
+    if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (aiChatBusy) return;
+    renderChatMessage('user', q);
+    tryCloudAiThenFallback(q, buildChatHistoryForOpenAI, answerAiQuestion);
   }
 
   /** Hero özet kartları (dashboard ile aynı veri, ekstra id ile senkron). */
@@ -2340,6 +2390,10 @@
 
   window.FitTrackApp = window.FitTrackApp || {};
   window.FitTrackApp.reload = reloadForUserChange;
+  window.FitTrackApp.computeDailyFitTrackScore = computeDailyFitTrackScore;
+  window.FitTrackApp.buildSmartDailyRecommendation = buildSmartDailyRecommendation;
+  window.FitTrackApp.getWeekSummaryLine = getWeekSummaryLine;
+  window.FitTrackApp.askCoach = askCoach;
 
   window.addEventListener('fittrack:user-change', reloadForUserChange);
 })();
