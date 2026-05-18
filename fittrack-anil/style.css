@@ -716,6 +716,43 @@ a:hover {
   color: var(--accent-orange);
 }
 
+.logo.logo-brand {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  line-height: 0;
+  text-decoration: none;
+}
+
+.logo-img {
+  display: block;
+  height: 42px;
+  width: auto;
+  max-width: min(196px, 46vw);
+  object-fit: contain;
+}
+
+.footer-logo {
+  margin: 0;
+  line-height: 0;
+}
+
+.footer-logo-img {
+  display: block;
+  height: 38px;
+  width: auto;
+  max-width: 176px;
+  object-fit: contain;
+}
+
+.hero-phone-logo {
+  display: block;
+  height: 26px;
+  width: auto;
+  max-width: 128px;
+  object-fit: contain;
+}
+
 .main-nav {
   display: flex;
   gap: 0.75rem 1rem;
@@ -2015,8 +2052,13 @@ input::placeholder {
     gap: 0.75rem;
   }
 
-  .logo {
-    align-self: center;
+  .logo.logo-brand {
+    align-self: flex-start;
+  }
+
+  .logo-img {
+    height: 36px;
+    max-width: min(168px, 52vw);
   }
 
   .main-nav {
@@ -2518,14 +2560,11 @@ input::placeholder {
 }
 
 .hero-phone-brand {
-  font-size: 0.82rem;
-  font-weight: 820;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-}
-
-.hero-phone-brand span {
-  color: var(--accent-orange);
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .hero-phone-pill {
@@ -4095,14 +4134,6 @@ body.has-open-modal {
 
 .site-footer-studio .footer-logo {
   margin: 0;
-  font-size: 1.65rem;
-  font-weight: 880;
-  letter-spacing: -0.025em;
-  color: var(--text-primary);
-}
-
-.site-footer-studio .footer-logo span {
-  color: var(--accent-orange);
 }
 
 .site-footer-studio .footer-tagline {
