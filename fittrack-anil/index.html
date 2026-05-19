@@ -84,8 +84,8 @@
             src="public/images/fittrack-logo.png"
             alt=""
             class="logo-img"
-            width="34"
-            height="34"
+            width="52"
+            height="52"
             decoding="async"
           />
         </span>
@@ -99,7 +99,7 @@
         <a href="#rapor">Rapor</a>
       </nav>
       <div class="nav-auth" id="nav-auth" aria-label="Hesap işlemleri">
-        <span class="nav-user-info" id="nav-user-info" hidden>
+        <span class="nav-user-info" id="nav-user-info" data-auth-show="user" hidden>
           <span class="nav-user-icon" aria-hidden="true">👤</span>
           <span class="nav-user-name" id="nav-user-name"></span>
         </span>
@@ -107,6 +107,7 @@
           type="button"
           class="btn btn-outline btn-small nav-auth-btn"
           id="btn-open-login"
+          data-auth-show="guest"
           aria-label="Giriş yap modalını aç"
         >
           Giriş Yap
@@ -115,6 +116,7 @@
           type="button"
           class="btn btn-primary btn-small nav-auth-btn"
           id="btn-open-register"
+          data-auth-show="guest"
           aria-label="Üye ol modalını aç"
         >
           Üye Ol
@@ -123,6 +125,7 @@
           type="button"
           class="btn btn-secondary btn-small nav-auth-btn nav-auth-btn-admin"
           id="btn-open-admin"
+          data-auth-show="admin"
           hidden
           aria-label="Admin panelini aç"
         >
@@ -132,6 +135,7 @@
           type="button"
           class="btn btn-outline btn-small nav-auth-btn"
           id="btn-logout"
+          data-auth-show="user"
           hidden
           aria-label="Oturumu kapat"
         >
@@ -1045,7 +1049,7 @@
           />
         </p>
         <p class="footer-tagline">Disiplinini ekrana getir. Verini hedefe çevir.</p>
-        <p class="footer-cta-row" id="footer-cta-row">
+        <p class="footer-cta-row" id="footer-cta-row" data-auth-show="guest">
           <button
             type="button"
             class="btn btn-outline btn-small footer-cta-btn"

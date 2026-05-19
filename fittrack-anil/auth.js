@@ -275,7 +275,7 @@
     var form = document.getElementById('form-register');
     if (form) form.reset();
 
-    renderNavAuth();
+    updateAuthUI();
     emitUserChange();
     toast('Kayıt başarılı. Hoş geldin ' + newUser.name + '!', true);
   }
@@ -313,7 +313,7 @@
     var form = document.getElementById('form-login');
     if (form) form.reset();
 
-    renderNavAuth();
+    updateAuthUI();
     emitUserChange();
     toast('Giriş başarılı. Tekrar hoş geldin ' + user.name + '!', true);
   }
@@ -322,7 +322,7 @@
     var u = getCurrentUser();
     setCurrentUser(null);
     closeAllModals();
-    renderNavAuth();
+    updateAuthUI();
     emitUserChange();
     toast(
       u ? (u.name + ' oturumu kapatıldı.') : 'Oturum kapatıldı.',
@@ -369,49 +369,75 @@
     toast('Kullanıcı silindi.', true);
   }
 
-  // --- Navbar UI ---------------------------------------------------------
+  // --- Auth UI (navbar, hero, footer) ------------------------------------
 
-  function renderNavAuth() {
+  function setAuthVisibility(el, visible) {
+    if (!el) return;
+    if (visible) el.removeAttribute('hidden');
+    else el.setAttribute('hidden', '');
+  }
+
+  function applyAuthVisibility(selector, visible) {
+    var nodes = document.querySelectorAll(selector);
+    for (var i = 0; i < nodes.length; i++) {
+      setAuthVisibility(nodes[i], visible);
+    }
+  }
+
+  /**
+   * Oturum durumuna göre navbar, hero ve footer üyelik CTA’larını günceller.
+   * Sayfa yüklemesi, giriş/çıkış ve fittrack:user-change sonrası çağrılır.
+   */
+  function updateAuthUI() {
     var current = getCurrentUser();
-    var btnLogin = document.getElementById('btn-open-login');
-    var btnRegister = document.getElementById('btn-open-register');
-    var btnLogout = document.getElementById('btn-logout');
-    var btnAdmin = document.getElementById('btn-open-admin');
-    var userBox = document.getElementById('nav-user-info');
+    var isLoggedIn = !!current;
+    var isAdmin = isLoggedIn && current.role === 'admin';
+
+    if (document.body) {
+      document.body.classList.toggle('is-auth-user', isLoggedIn);
+      document.body.classList.toggle('is-auth-guest', !isLoggedIn);
+      document.body.classList.toggle('is-auth-admin', isAdmin);
+    }
+
+    applyAuthVisibility('[data-auth-show="guest"]', !isLoggedIn);
+    applyAuthVisibility('[data-auth-show="user"]', isLoggedIn);
+    applyAuthVisibility('[data-auth-show="admin"]', isAdmin);
+
     var userName = document.getElementById('nav-user-name');
-
-    function show(el) {
-      if (el) el.removeAttribute('hidden');
-    }
-    function hide(el) {
-      if (el) el.setAttribute('hidden', '');
-    }
-
-    if (current) {
-      hide(btnLogin);
-      hide(btnRegister);
-      show(userBox);
-      show(btnLogout);
-      if (userName) {
+    if (userName) {
+      if (isLoggedIn) {
         userName.textContent = current.name;
         userName.setAttribute(
           'title',
-          current.email + (current.role === 'admin' ? ' · admin' : '')
+          current.email + (isAdmin ? ' · admin' : '')
         );
-      }
-      if (current.role === 'admin') {
-        show(btnAdmin);
       } else {
-        hide(btnAdmin);
+        userName.textContent = '';
+        userName.removeAttribute('title');
       }
-    } else {
-      show(btnLogin);
-      show(btnRegister);
-      hide(userBox);
-      hide(btnLogout);
-      hide(btnAdmin);
-      if (userName) userName.textContent = '';
     }
+
+    var heroAuthBtn = document.getElementById('btn-hero-auth');
+    if (heroAuthBtn) {
+      setAuthVisibility(heroAuthBtn, true);
+      if (isLoggedIn) {
+        heroAuthBtn.textContent = 'Panele Git';
+        heroAuthBtn.className = 'btn btn-outline hero-btn-dashboard btn-cta-arrow';
+        heroAuthBtn.removeAttribute('data-modal-switch');
+        heroAuthBtn.setAttribute('aria-label', 'Dashboard bölümüne git');
+        heroAuthBtn.setAttribute('type', 'button');
+      } else {
+        heroAuthBtn.textContent = 'Üye Ol';
+        heroAuthBtn.className = 'btn btn-secondary hero-btn-signup btn-cta-arrow';
+        heroAuthBtn.setAttribute('data-modal-switch', 'modal-register');
+        heroAuthBtn.setAttribute('aria-label', 'Üye ol modalını aç');
+        heroAuthBtn.setAttribute('type', 'button');
+      }
+    }
+  }
+
+  function renderNavAuth() {
+    updateAuthUI();
   }
 
   // --- Admin paneli ------------------------------------------------------
@@ -611,6 +637,20 @@
       });
     }
 
+    var btnHeroAuth = document.getElementById('btn-hero-auth');
+    if (btnHeroAuth) {
+      btnHeroAuth.addEventListener('click', function () {
+        if (getCurrentUser()) {
+          var dash = document.getElementById('dashboard');
+          if (dash) {
+            dash.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+          return;
+        }
+        openModal('modal-register');
+      });
+    }
+
     // Modal kapatma
     var closeButtons = document.querySelectorAll('[data-modal-close]');
     for (var i = 0; i < closeButtons.length; i++) {
@@ -622,16 +662,15 @@
       })(closeButtons[i]);
     }
 
-    // Modal geçişleri (Üye Ol ↔ Giriş Yap)
-    var switchButtons = document.querySelectorAll('[data-modal-switch]');
-    for (var j = 0; j < switchButtons.length; j++) {
-      (function (btn) {
-        btn.addEventListener('click', function () {
-          var target = btn.getAttribute('data-modal-switch');
-          if (target) openModal(target);
-        });
-      })(switchButtons[j]);
-    }
+    // Modal geçişleri (Üye Ol ↔ Giriş Yap) — delegation ile dinamik butonlar dahil
+    document.addEventListener('click', function (e) {
+      var trigger = e.target.closest('[data-modal-switch]');
+      if (!trigger) return;
+      if (trigger.id === 'btn-hero-auth') return;
+      if (getCurrentUser() && trigger.closest('[data-auth-show="guest"]')) return;
+      var target = trigger.getAttribute('data-modal-switch');
+      if (target) openModal(target);
+    });
 
     // Overlay’e tıklayınca kapan
     var overlays = document.querySelectorAll('.modal-overlay');
@@ -664,7 +703,8 @@
   function init() {
     seedAdmin();
     bindEvents();
-    renderNavAuth();
+    updateAuthUI();
+    window.requestAnimationFrame(updateAuthUI);
   }
 
   if (document.readyState === 'loading') {
@@ -673,9 +713,17 @@
     init();
   }
 
+  window.addEventListener('fittrack:user-change', updateAuthUI);
+  window.addEventListener('pageshow', updateAuthUI);
+  window.addEventListener('storage', function (e) {
+    if (e.key === CURRENT_KEY) updateAuthUI();
+  });
+
   // Debug / harici çağrılar için (örn: console).
   window.FitTrackAuth = {
     getCurrentUser: getCurrentUser,
+    updateAuthUI: updateAuthUI,
+    renderNavAuth: renderNavAuth,
     listUsers: function () {
       return readUsers().map(function (u) {
         return { id: u.id, name: u.name, email: u.email, role: u.role, createdAt: u.createdAt };

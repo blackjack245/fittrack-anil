@@ -2396,6 +2396,15 @@
   window.FitTrackApp.askCoach = askCoach;
 
   window.addEventListener('fittrack:user-change', reloadForUserChange);
+  window.addEventListener('fittrack:user-change', function () {
+    if (window.FitTrackAuth && typeof window.FitTrackAuth.updateAuthUI === 'function') {
+      window.FitTrackAuth.updateAuthUI();
+    }
+  });
+
+  if (window.FitTrackAuth && typeof window.FitTrackAuth.updateAuthUI === 'function') {
+    window.FitTrackAuth.updateAuthUI();
+  }
 
   /** Açılış splash: 3 sn göster, fade-out, DOM'dan kaldır. */
   function initAppSplash() {
