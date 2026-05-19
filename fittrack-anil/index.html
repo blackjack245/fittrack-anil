@@ -16,8 +16,8 @@
           src="public/images/fittrack-logo.png"
           alt="FitTrack"
           class="logo-img app-splash-logo"
-          width="220"
-          height="52"
+          width="72"
+          height="72"
           decoding="async"
         />
       </span>
@@ -84,8 +84,8 @@
             src="public/images/fittrack-logo.png"
             alt=""
             class="logo-img"
-            width="168"
-            height="40"
+            width="34"
+            height="34"
             decoding="async"
           />
         </span>
@@ -176,7 +176,7 @@
             <button
               type="button"
               class="btn btn-secondary hero-btn-signup btn-cta-arrow"
-              data-modal-switch="modal-register"
+              id="btn-hero-auth"
               aria-label="Üye ol modalını aç"
             >
               Üye Ol
@@ -252,8 +252,8 @@
                           src="public/images/fittrack-logo.png"
                           alt="FitTrack"
                           class="hero-phone-logo"
-                          width="120"
-                          height="30"
+                          width="28"
+                          height="28"
                           decoding="async"
                         />
                       </span>
@@ -963,44 +963,6 @@
       </div>
     </section>
 
-    <!-- Üye Ol CTA -->
-    <section class="section signup-cta-section section-anchor" aria-labelledby="signup-cta-heading">
-      <div class="signup-cta-card">
-        <div class="signup-cta-content">
-          <span class="signup-cta-eyebrow">Hesap · Veri Ayrımı</span>
-          <h2 id="signup-cta-heading" class="signup-cta-title">
-            Hesabını oluştur ve verilerini <span class="studio-text-accent">ayrı sakla</span>
-          </h2>
-          <p class="signup-cta-desc">
-            Üye olduğunda kalori, su, egzersiz, BMI ve haftalık raporun yalnızca senin hesabına bağlanır. Aynı tarayıcıda başka bir kullanıcı oturum açtığında veriler karışmaz.
-          </p>
-          <ul class="signup-cta-points" aria-label="Üyelik avantajları">
-            <li><span aria-hidden="true">✓</span> Kullanıcı bazlı kalori / su / egzersiz / BMI verisi</li>
-            <li><span aria-hidden="true">✓</span> Kişisel AI sohbet geçmişi</li>
-            <li><span aria-hidden="true">✓</span> Haftalık rapor ve JSON dışa aktarma</li>
-          </ul>
-        </div>
-        <div class="signup-cta-actions">
-          <button
-            type="button"
-            class="btn btn-primary btn-cta-lg btn-cta-arrow"
-            data-modal-switch="modal-register"
-            aria-label="Üye ol modalını aç"
-          >
-            Üye Ol
-          </button>
-          <button
-            type="button"
-            class="btn btn-outline btn-cta-lg"
-            data-modal-switch="modal-login"
-            aria-label="Giriş yap modalını aç"
-          >
-            Giriş Yap
-          </button>
-        </div>
-      </div>
-    </section>
-
     <!-- Haftalık rapor -->
     <section id="rapor" class="section report-section section-anchor" aria-labelledby="weekly-heading-main">
       <aside class="weekly-report panel weekly-report-modern" aria-labelledby="weekly-heading-main">
@@ -1077,16 +1039,17 @@
             src="public/images/fittrack-logo.png"
             alt="FitTrack"
             class="footer-logo-img"
-            width="168"
-            height="42"
+            width="40"
+            height="40"
             decoding="async"
           />
         </p>
         <p class="footer-tagline">Disiplinini ekrana getir. Verini hedefe çevir.</p>
-        <p class="footer-cta-row">
+        <p class="footer-cta-row" id="footer-cta-row">
           <button
             type="button"
             class="btn btn-outline btn-small footer-cta-btn"
+            id="footer-btn-register"
             data-modal-switch="modal-register"
             aria-label="Üye ol modalını aç"
           >
@@ -1095,6 +1058,7 @@
           <button
             type="button"
             class="btn btn-outline btn-small footer-cta-btn"
+            id="footer-btn-login"
             data-modal-switch="modal-login"
             aria-label="Giriş yap modalını aç"
           >
