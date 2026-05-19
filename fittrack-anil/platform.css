@@ -514,17 +514,33 @@
   padding: 1.15rem 1.2rem 0.85rem;
 }
 
+.meal-result-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.55rem;
+}
+
 .meal-result-badge {
   display: inline-flex;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
   font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.meal-result-badge-goal {
+  color: #3b1806;
+  background: linear-gradient(135deg, var(--accent-orange), #fdba74);
+  border: 1px solid rgba(251, 146, 60, 0.45);
+}
+
+.meal-result-badge-ai {
   color: #052e14;
   background: linear-gradient(135deg, var(--accent-green), #86efac);
-  margin-bottom: 0.55rem;
+  border: 1px solid rgba(74, 222, 128, 0.35);
 }
 
 .meal-result-premium .meal-result-title {
@@ -617,6 +633,15 @@
 
 .reveal-delay-3 {
   transition-delay: 0.24s;
+}
+
+.site-header {
+  max-width: 100%;
+}
+
+.site-header .header-inner {
+  min-width: 0;
+  width: 100%;
 }
 
 /* Header nav — mobilde yatay kaydırma, taşma yok */

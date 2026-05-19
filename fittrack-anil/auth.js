@@ -178,17 +178,27 @@
   function handleDemoLogin() {
     var user = seedDemoUser();
     setCurrentUser(user);
-    if (window.FitTrackApp && typeof window.FitTrackApp.seedDemoPresentationData === 'function') {
-      window.FitTrackApp.seedDemoPresentationData();
-    }
     closeAllModals();
+
+    if (window.FitTrackApp) {
+      if (typeof window.FitTrackApp.seedDemoPresentationData === 'function') {
+        window.FitTrackApp.seedDemoPresentationData();
+      }
+      if (typeof window.FitTrackApp.reload === 'function') {
+        window.FitTrackApp.reload();
+      }
+    }
+
     updateAuthUI();
     emitUserChange();
     toast('Demo hesabıyla giriş yapıldı. Örnek veriler yüklendi.', true);
-    var dash = document.getElementById('dashboard');
-    if (dash) {
-      dash.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+
+    window.requestAnimationFrame(function () {
+      var dash = document.getElementById('dashboard');
+      if (dash) {
+        dash.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
   }
 
   function findUserByEmail(email) {

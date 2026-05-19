@@ -22,6 +22,7 @@
   var AUTH_CURRENT_USER_KEY = 'fittrack_current_user_v1';
   var STORAGE_KEY_BASE = 'fittrack_state_v1';
   var AI_CHAT_KEY_BASE = 'fittrack_ai_chat_v1';
+  var DEMO_USER_EMAIL = 'demo@fittrack.com';
 
   function currentUserIdSafe() {
     try {
@@ -2433,6 +2434,8 @@
 
   if (elYear) elYear.textContent = String(new Date().getFullYear());
 
+  ensureDemoPresentationIfNeeded();
+  state = loadState();
   pickMotivation();
   render();
   restoreAiChatFromStorage();
@@ -2482,7 +2485,38 @@
     persistState(state);
   }
 
+  function isDemoUserSession() {
+    try {
+      var raw = localStorage.getItem(AUTH_CURRENT_USER_KEY);
+      if (!raw) return false;
+      var u = JSON.parse(raw);
+      return (
+        u &&
+        typeof u.email === 'string' &&
+        u.email.toLowerCase() === DEMO_USER_EMAIL
+      );
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /** Demo hesabı boşsa sunum verisini otomatik doldurur (sayfa yenileme / eski oturum). */
+  function ensureDemoPresentationIfNeeded() {
+    if (!isDemoUserSession()) return;
+    var loaded = loadState();
+    var histLen = loaded.activityHistory
+      ? Object.keys(loaded.activityHistory).length
+      : 0;
+    var hasLive =
+      (loaded.caloriesConsumed || 0) > 0 ||
+      (loaded.waterGlasses || 0) > 0 ||
+      (loaded.exercises && loaded.exercises.length > 0);
+    if (hasLive && histLen >= 2) return;
+    seedDemoPresentationData();
+  }
+
   function reloadForUserChange() {
+    ensureDemoPresentationIfNeeded();
     state = loadState();
     pickMotivation();
     render();

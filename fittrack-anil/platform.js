@@ -384,17 +384,31 @@
       fat: f,
       prep: pick.prep,
       why: pick.why + ' Hedefin: ' + goal + '.',
+      goalLabel: goal,
+      mealTypeLabel: mealType,
       disclaimer: HEALTH_DISCLAIMER + ' Beslenme planı için diyetisyene danışın.'
     };
+  }
+
+  function formatGoalBadge(label) {
+    var s = String(label || '').trim();
+    if (!s) return 'Hedef';
+    return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
   function renderMealResult(data) {
     var el = document.getElementById('meal-result');
     if (!el) return;
+    var goalBadge = formatGoalBadge(data.goalLabel);
     el.innerHTML =
       '<article class="meal-result-card meal-result-premium">' +
       '<header class="meal-result-head">' +
-      '<span class="meal-result-badge">AI Önerisi</span>' +
+      '<div class="meal-result-badges">' +
+      '<span class="meal-result-badge meal-result-badge-goal">' +
+      escapeHtml(goalBadge) +
+      '</span>' +
+      '<span class="meal-result-badge meal-result-badge-ai">AI Önerisi</span>' +
+      '</div>' +
       '<h3 class="meal-result-title">' +
       escapeHtml(data.name) +
       '</h3>' +
