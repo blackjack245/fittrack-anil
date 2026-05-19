@@ -114,6 +114,15 @@
         </button>
         <button
           type="button"
+          class="btn btn-demo btn-small nav-auth-btn"
+          id="btn-demo-login"
+          data-auth-show="guest"
+          aria-label="Demo kullanıcı ile giriş yap ve örnek verileri yükle"
+        >
+          Demo ile Giriş
+        </button>
+        <button
+          type="button"
           class="btn btn-primary btn-small nav-auth-btn"
           id="btn-open-register"
           data-auth-show="guest"
@@ -156,8 +165,8 @@
   <main id="main-content">
     <!-- Hero -->
     <section id="ana-sayfa" class="hero hero-modern hero-studio section-anchor" aria-labelledby="hero-title">
-      <div class="hero-shell">
-        <div class="hero-copy">
+      <div class="hero-shell reveal-group">
+        <div class="hero-copy reveal-fade">
           <p class="hero-badge hero-badge-studio">
             <span class="hero-badge-dot" aria-hidden="true"></span>
             Fitness Studio Dashboard · 24/7 Takip
@@ -185,9 +194,18 @@
             >
               Üye Ol
             </button>
+            <button
+              type="button"
+              class="btn btn-demo btn-demo-hero"
+              id="btn-demo-login-hero"
+              data-auth-show="guest"
+              aria-label="Demo kullanıcı ile giriş yap"
+            >
+              Demo Kullanıcı ile Giriş Yap
+            </button>
           </div>
         </div>
-        <div class="hero-side-col">
+        <div class="hero-side-col reveal-fade reveal-delay-2">
           <div class="hero-visual-wrap" aria-hidden="true">
             <div class="hero-visual">
               <span class="hero-v-dot hero-v-dot-a"></span>
@@ -396,29 +414,65 @@
         <p class="section-sub">Alan uzmanlarından danışmanlık al; giriş yaptıktan sonra AI Koç ile planını kişiselleştir.</p>
       </header>
       <div class="platform-card-grid coaches-grid">
-        <article class="platform-card coach-card">
-          <div class="coach-avatar" aria-hidden="true">💪</div>
+        <article class="platform-card coach-card coach-card-pro reveal-fade">
+          <div class="coach-card-top">
+            <div class="coach-avatar coach-avatar-strength" aria-hidden="true">💪</div>
+            <div class="coach-head-meta">
+              <span class="coach-specialty-tag">Kuvvet &amp; Form</span>
+              <div class="coach-stats-row">
+                <span class="coach-stat"><strong>8</strong> yıl</span>
+                <span class="coach-stat coach-stat-rating" aria-label="4.9 puan">★ 4.9</span>
+              </div>
+            </div>
+          </div>
           <p class="platform-card-role">Strength Coach</p>
           <h3>Ayşe Kaya</h3>
           <p class="platform-card-desc">Kuvvet antrenmanı, form düzeltme ve progresif yüklenme.</p>
           <button type="button" class="btn btn-primary btn-small" data-coach-consult data-coach-name="Ayşe Kaya — Strength Coach">Antrenöre Danış</button>
         </article>
-        <article class="platform-card coach-card">
-          <div class="coach-avatar" aria-hidden="true">🏃</div>
+        <article class="platform-card coach-card coach-card-pro reveal-fade reveal-delay-1">
+          <div class="coach-card-top">
+            <div class="coach-avatar coach-avatar-cardio" aria-hidden="true">🏃</div>
+            <div class="coach-head-meta">
+              <span class="coach-specialty-tag">Kardiyo &amp; Dayanıklılık</span>
+              <div class="coach-stats-row">
+                <span class="coach-stat"><strong>6</strong> yıl</span>
+                <span class="coach-stat coach-stat-rating" aria-label="4.8 puan">★ 4.8</span>
+              </div>
+            </div>
+          </div>
           <p class="platform-card-role">Cardio Coach</p>
           <h3>Emre Yıldız</h3>
           <p class="platform-card-desc">Kardiyo kapasitesi, interval ve dayanıklılık planı.</p>
           <button type="button" class="btn btn-primary btn-small" data-coach-consult data-coach-name="Emre Yıldız — Cardio Coach">Antrenöre Danış</button>
         </article>
-        <article class="platform-card coach-card">
-          <div class="coach-avatar" aria-hidden="true">🥗</div>
+        <article class="platform-card coach-card coach-card-pro reveal-fade reveal-delay-2">
+          <div class="coach-card-top">
+            <div class="coach-avatar coach-avatar-nutrition" aria-hidden="true">🥗</div>
+            <div class="coach-head-meta">
+              <span class="coach-specialty-tag">Beslenme &amp; Makro</span>
+              <div class="coach-stats-row">
+                <span class="coach-stat"><strong>10</strong> yıl</span>
+                <span class="coach-stat coach-stat-rating" aria-label="5.0 puan">★ 5.0</span>
+              </div>
+            </div>
+          </div>
           <p class="platform-card-role">Nutrition Coach</p>
           <h3>Zeynep Arslan</h3>
           <p class="platform-card-desc">Makro dengesi ve sürdürülebilir beslenme alışkanlıkları.</p>
           <button type="button" class="btn btn-primary btn-small" data-coach-consult data-coach-name="Zeynep Arslan — Nutrition Coach">Antrenöre Danış</button>
         </article>
-        <article class="platform-card coach-card">
-          <div class="coach-avatar" aria-hidden="true">🎯</div>
+        <article class="platform-card coach-card coach-card-pro reveal-fade reveal-delay-3">
+          <div class="coach-card-top">
+            <div class="coach-avatar coach-avatar-pt" aria-hidden="true">🎯</div>
+            <div class="coach-head-meta">
+              <span class="coach-specialty-tag">Bire Bir Koçluk</span>
+              <div class="coach-stats-row">
+                <span class="coach-stat"><strong>7</strong> yıl</span>
+                <span class="coach-stat coach-stat-rating" aria-label="4.9 puan">★ 4.9</span>
+              </div>
+            </div>
+          </div>
           <p class="platform-card-role">Personal Trainer</p>
           <h3>Can Demir</h3>
           <p class="platform-card-desc">Bire bir hedef takibi ve haftalık check-in.</p>
@@ -438,42 +492,57 @@
         <h2 id="dash-heading">Dashboard</h2>
         <p class="section-sub">Bugünkü ilerlemeni tek bakışta gör; kartlar mobilde alt alta sıralanır.</p>
       </header>
-      <div class="card-grid card-grid-dash-extended stat-cards-unified">
-        <article class="stat-card stat-card-dashboard" aria-labelledby="stat-cal-title">
-          <div class="stat-card-icon stat-cal" aria-hidden="true"></div>
-          <h3 id="stat-cal-title">Kalori</h3>
+      <div class="card-grid card-grid-dash-extended stat-cards-unified reveal-group">
+        <article class="stat-card stat-card-dashboard stat-card-visual stat-card-visual-cal reveal-fade" aria-labelledby="stat-cal-title">
+          <div class="stat-visual-head">
+            <span class="stat-visual-emoji" aria-hidden="true">🔥</span>
+            <div>
+              <h3 id="stat-cal-title">Kalori</h3>
+              <p class="stat-visual-pct" id="dash-cal-pct">0%</p>
+            </div>
+          </div>
           <p class="stat-value"><span id="dash-cal-current">0</span> / <span id="dash-cal-goal">2200</span> kcal</p>
-          <div class="mini-bar" aria-hidden="true"><span id="dash-cal-bar"></span></div>
+          <div class="mini-bar mini-bar-glow" aria-hidden="true"><span id="dash-cal-bar"></span></div>
           <p class="stat-card-hint">Alınan kalori, günlük hedefe göre dolar.</p>
         </article>
-        <article class="stat-card stat-card-dashboard" aria-labelledby="stat-water-title">
-          <div class="stat-card-icon stat-water" aria-hidden="true"></div>
-          <h3 id="stat-water-title">Su</h3>
+        <article class="stat-card stat-card-dashboard stat-card-visual stat-card-visual-water reveal-fade reveal-delay-1" aria-labelledby="stat-water-title">
+          <div class="stat-visual-head">
+            <span class="stat-visual-emoji" aria-hidden="true">💧</span>
+            <div>
+              <h3 id="stat-water-title">Su</h3>
+              <p class="stat-visual-pct" id="dash-water-pct">0%</p>
+            </div>
+          </div>
           <p class="stat-value"><span id="dash-water-current">0</span> / <span id="dash-water-goal">8</span> bardak</p>
-          <div class="mini-bar mini-bar-water" aria-hidden="true"><span id="dash-water-bar"></span></div>
+          <div class="mini-bar mini-bar-water mini-bar-glow" aria-hidden="true"><span id="dash-water-bar"></span></div>
           <p class="stat-card-hint">Her bardak yaklaşık 250 ml varsayımıyla hesaplanır.</p>
         </article>
-        <article class="stat-card stat-card-dashboard" aria-labelledby="stat-ex-title">
-          <div class="stat-card-icon stat-ex" aria-hidden="true"></div>
-          <h3 id="stat-ex-title">Egzersiz</h3>
+        <article class="stat-card stat-card-dashboard stat-card-visual stat-card-visual-ex reveal-fade reveal-delay-2" aria-labelledby="stat-ex-title">
+          <div class="stat-visual-head">
+            <span class="stat-visual-emoji" aria-hidden="true">🏃</span>
+            <div>
+              <h3 id="stat-ex-title">Egzersiz</h3>
+              <p class="stat-visual-pct" id="dash-ex-pct">0%</p>
+            </div>
+          </div>
           <p class="stat-value"><span id="dash-ex-minutes">0</span> / <span id="dash-ex-goal">45</span> dk</p>
           <p class="stat-meta"><span id="dash-ex-count">0</span> kayıt</p>
-          <div class="mini-bar mini-bar-ex" aria-hidden="true"><span id="dash-ex-bar"></span></div>
+          <div class="mini-bar mini-bar-ex mini-bar-glow" aria-hidden="true"><span id="dash-ex-bar"></span></div>
           <p class="stat-card-hint">Toplam süre günlük dakika hedefine göre gösterilir.</p>
         </article>
-        <article class="stat-card stat-card-dashboard stat-card-fit" aria-labelledby="stat-fit-title">
+        <article class="stat-card stat-card-dashboard stat-card-fit reveal-fade reveal-delay-1" aria-labelledby="stat-fit-title">
           <div class="stat-card-icon stat-ex" aria-hidden="true"></div>
           <h3 id="stat-fit-title">Fit Skoru</h3>
           <p class="stat-value"><span id="dash-fit-score">0</span> / 100</p>
           <p class="stat-card-hint">Su, egzersiz, kalori ve kilo/BMI verilerinden hesaplanır.</p>
         </article>
-        <article class="stat-card stat-card-dashboard" aria-labelledby="stat-weekly-title">
-          <div class="stat-card-icon stat-cal" aria-hidden="true"></div>
+        <article class="stat-card stat-card-dashboard stat-card-weekly-chart reveal-fade reveal-delay-3" aria-labelledby="stat-weekly-title">
           <h3 id="stat-weekly-title">Haftalık İlerleme</h3>
           <p class="dash-weekly-mini" id="dash-weekly-mini">Bu hafta veri bekleniyor…</p>
+          <div id="dash-week-chart" class="dash-week-chart" role="img" aria-label="Haftalık egzersiz dakikaları grafiği"></div>
           <a class="dash-link" href="#rapor">Detaylı rapor →</a>
         </article>
-        <article class="stat-card stat-card-dashboard" aria-labelledby="stat-ai-tip-title">
+        <article class="stat-card stat-card-dashboard reveal-fade reveal-delay-2" aria-labelledby="stat-ai-tip-title">
           <div class="stat-card-icon stat-water" aria-hidden="true"></div>
           <h3 id="stat-ai-tip-title">AI Önerisi</h3>
           <p class="dash-ai-tip-text" id="dash-ai-tip">Kayıt ekledikçe kişisel öneriler burada görünür.</p>
@@ -1116,6 +1185,7 @@
             />
           </div>
           <button type="submit" class="btn btn-primary btn-block">Giriş Yap</button>
+          <button type="button" class="btn btn-demo btn-block" id="btn-demo-login-modal">Demo Kullanıcı ile Giriş Yap</button>
           <p class="auth-form-foot">
             Hesabın yok mu?
             <button type="button" class="auth-link" data-modal-switch="modal-register">

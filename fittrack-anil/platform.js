@@ -392,24 +392,31 @@
     var el = document.getElementById('meal-result');
     if (!el) return;
     el.innerHTML =
-      '<article class="meal-result-card">' +
+      '<article class="meal-result-card meal-result-premium">' +
+      '<header class="meal-result-head">' +
+      '<span class="meal-result-badge">AI Önerisi</span>' +
       '<h3 class="meal-result-title">' +
       escapeHtml(data.name) +
       '</h3>' +
-      '<dl class="meal-result-meta">' +
+      '</header>' +
+      '<div class="meal-macro-grid">' +
+      '<div class="meal-macro-chip meal-macro-cal"><span class="meal-macro-k">Kalori</span><strong>' +
+      data.calories +
+      '</strong><span class="meal-macro-u">kcal</span></div>' +
+      '<div class="meal-macro-chip"><span class="meal-macro-k">Protein</span><strong>' +
+      data.protein +
+      'g</strong></div>' +
+      '<div class="meal-macro-chip"><span class="meal-macro-k">Karb</span><strong>' +
+      data.carbs +
+      'g</strong></div>' +
+      '<div class="meal-macro-chip"><span class="meal-macro-k">Yağ</span><strong>' +
+      data.fat +
+      'g</strong></div>' +
+      '</div>' +
+      '<dl class="meal-result-meta meal-result-meta-premium">' +
       '<div><dt>Malzemeler</dt><dd>' +
       escapeHtml(data.ingredients) +
       '</dd></div>' +
-      '<div><dt>Yaklaşık kalori</dt><dd>' +
-      data.calories +
-      ' kcal</dd></div>' +
-      '<div><dt>Makrolar</dt><dd>P ' +
-      data.protein +
-      'g · K ' +
-      data.carbs +
-      'g · Y ' +
-      data.fat +
-      'g</dd></div>' +
       '<div><dt>Hazırlama</dt><dd>' +
       escapeHtml(data.prep) +
       '</dd></div>' +
@@ -417,7 +424,7 @@
       escapeHtml(data.why) +
       '</dd></div>' +
       '</dl>' +
-      '<p class="platform-disclaimer">' +
+      '<p class="platform-disclaimer meal-result-disclaimer">' +
       escapeHtml(data.disclaimer) +
       '</p>' +
       '</article>';
@@ -496,6 +503,9 @@
       }
       if (weekEl && typeof window.FitTrackApp.getWeekSummaryLine === 'function') {
         weekEl.textContent = window.FitTrackApp.getWeekSummaryLine();
+      }
+      if (typeof window.FitTrackApp.renderDashWeeklyChart === 'function') {
+        window.FitTrackApp.renderDashWeeklyChart();
       }
     }
   }

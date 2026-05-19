@@ -321,6 +321,9 @@
   var dashExMinutes = document.getElementById('dash-ex-minutes');
   var dashExGoal = document.getElementById('dash-ex-goal');
   var dashExBar = document.getElementById('dash-ex-bar');
+  var dashCalPct = document.getElementById('dash-cal-pct');
+  var dashWaterPct = document.getElementById('dash-water-pct');
+  var dashExPct = document.getElementById('dash-ex-pct');
   var dashWeightCurrent = document.getElementById('dash-weight-current');
   var dashWeightGoal = document.getElementById('dash-weight-goal');
   var dashWeightProgress = document.getElementById('dash-weight-progress');
@@ -1722,6 +1725,59 @@
     });
   }
 
+  /** Dashboard mini haftalık egzersiz grafiği */
+  function renderDashWeeklyChart() {
+    var root = document.getElementById('dash-week-chart');
+    if (!root) return;
+
+    var weekBundle = getWeekActivityData();
+    var dailyEx = weekBundle.dailyEx;
+    var weekDates = weekBundle.weekDates;
+    var today = todayISO();
+    var hasData =
+      weekBundle.totals.exerciseMinutes +
+        weekBundle.totals.calories +
+        weekBundle.totals.water >
+      0;
+
+    if (!hasData) {
+      root.innerHTML =
+        '<p class="dash-week-chart-empty">Bu hafta veri ekledikçe grafik dolacak.</p>';
+      return;
+    }
+
+    var maxEx = 0;
+    for (var m = 0; m < 7; m++) maxEx = Math.max(maxEx, dailyEx[m]);
+    var scaleMax = maxEx > 0 ? maxEx : 1;
+
+    root.innerHTML = '';
+    for (var j = 0; j < 7; j++) {
+      var ex = dailyEx[j];
+      var col = document.createElement('div');
+      col.className = 'dash-week-col';
+      if (weekDates[j] === today) col.classList.add('is-today');
+
+      var track = document.createElement('div');
+      track.className = 'dash-week-track';
+
+      var bar = document.createElement('span');
+      bar.className = 'dash-week-bar';
+      var hPct =
+        ex <= 0 ? 8 : Math.max(12, Math.round((ex / scaleMax) * 100));
+      bar.style.height = hPct + '%';
+
+      track.appendChild(bar);
+
+      var lab = document.createElement('span');
+      lab.className = 'dash-week-label';
+      lab.textContent = WEEKDAY_SHORT[j];
+
+      col.appendChild(track);
+      col.appendChild(lab);
+      root.appendChild(col);
+    }
+  }
+
   /** Haftalık grafik ve özet (activityHistory + bugünün canlı verisi) */
   function renderWeeklyReport() {
     var root = document.getElementById('week-chart-root');
@@ -1872,13 +1928,19 @@
     dashExGoal.textContent = state.exerciseGoalMinutes;
 
     var calP = (state.caloriesConsumed / calGoal) * 100;
-    dashCalBar.style.width = clampPercent(calP) + '%';
+    var calPctRounded = clampPercent(calP);
+    dashCalBar.style.width = calPctRounded + '%';
+    if (dashCalPct) dashCalPct.textContent = calPctRounded + '%';
 
     var waterP = (state.waterGlasses / waterGoal) * 100;
-    dashWaterBar.style.width = clampPercent(waterP) + '%';
+    var waterPctRounded = clampPercent(waterP);
+    dashWaterBar.style.width = waterPctRounded + '%';
+    if (dashWaterPct) dashWaterPct.textContent = waterPctRounded + '%';
 
     var exP = (minutes / exGoal) * 100;
-    dashExBar.style.width = clampPercent(exP) + '%';
+    var exPctRounded = clampPercent(exP);
+    dashExBar.style.width = exPctRounded + '%';
+    if (dashExPct) dashExPct.textContent = exPctRounded + '%';
 
     if (dashWeightCurrent) {
       dashWeightCurrent.textContent = Number.isFinite(state.currentWeight) ? state.currentWeight : '—';
@@ -1966,6 +2028,7 @@
     renderBadges();
     renderBMI();
     renderWeeklyReport();
+    renderDashWeeklyChart();
     updateHeroQuickStats();
     try {
       window.dispatchEvent(new CustomEvent('fittrack:render'));
@@ -2379,6 +2442,46 @@
    * Giriş / çıkış sonrası yeni kullanıcının `fittrack_state_v1_<id>` verisi yüklenir
    * ve tüm ekran (dashboard, takip, rapor, AI sohbeti) yeni veriyle yeniden çizilir.
    */
+  /**
+   * Demo sunum hesabı için örnek haftalık + bugünkü veri yükler.
+   * auth.js handleDemoLogin sonrası çağrılır.
+   */
+  function seedDemoPresentationData() {
+    state = loadState();
+    var today = todayISO();
+    var weekDates = getCurrentWeekIsoDates();
+    var hist = {};
+    var calSamples = [1680, 1920, 2050, 1840, 2100, 1560, 0];
+    var waterSamples = [6, 7, 8, 7, 8, 5, 0];
+    var exSamples = [20, 35, 0, 40, 50, 25, 0];
+
+    for (var i = 0; i < 7; i++) {
+      var iso = weekDates[i];
+      if (iso === today) continue;
+      hist[iso] = {
+        calories: calSamples[i],
+        water: waterSamples[i],
+        exerciseMinutes: exSamples[i]
+      };
+    }
+
+    state.savedDate = today;
+    state.calorieGoal = 2200;
+    state.caloriesConsumed = 1250;
+    state.waterGoal = 8;
+    state.waterGlasses = 5;
+    state.exerciseGoalMinutes = 45;
+    state.exercises = [
+      { id: 'demo-ex-1', name: 'Koşu bandı', minutes: 20, type: 'Kardiyo' },
+      { id: 'demo-ex-2', name: 'HIIT', minutes: 10, type: 'Kardiyo' }
+    ];
+    state.currentWeight = 78;
+    state.goalWeight = 72;
+    state.heightCm = 175;
+    state.activityHistory = hist;
+    persistState(state);
+  }
+
   function reloadForUserChange() {
     state = loadState();
     pickMotivation();
@@ -2394,6 +2497,8 @@
   window.FitTrackApp.buildSmartDailyRecommendation = buildSmartDailyRecommendation;
   window.FitTrackApp.getWeekSummaryLine = getWeekSummaryLine;
   window.FitTrackApp.askCoach = askCoach;
+  window.FitTrackApp.renderDashWeeklyChart = renderDashWeeklyChart;
+  window.FitTrackApp.seedDemoPresentationData = seedDemoPresentationData;
 
   window.addEventListener('fittrack:user-change', reloadForUserChange);
   window.addEventListener('fittrack:user-change', function () {
@@ -2456,5 +2561,50 @@
     window.setTimeout(startHide, displayMs);
   }
 
+  /** Hero ve bölüm kartlarında hafif fade/slide (prefers-reduced-motion uyumlu) */
+  function initRevealAnimations() {
+    var els = document.querySelectorAll('.reveal-fade');
+    if (!els.length) return;
+
+    var reduced = false;
+    try {
+      reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch (e) {}
+
+    function reveal(el) {
+      el.classList.add('is-revealed');
+    }
+
+    if (reduced || typeof IntersectionObserver === 'undefined') {
+      for (var i = 0; i < els.length; i++) reveal(els[i]);
+      return;
+    }
+
+    var io = new IntersectionObserver(
+      function (entries) {
+        for (var j = 0; j < entries.length; j++) {
+          if (entries[j].isIntersecting) {
+            reveal(entries[j].target);
+            io.unobserve(entries[j].target);
+          }
+        }
+      },
+      { root: null, rootMargin: '0px 0px -8% 0px', threshold: 0.06 }
+    );
+
+    for (var k = 0; k < els.length; k++) {
+      if (els[k].closest('.hero-shell')) {
+        window.requestAnimationFrame(function (el) {
+          return function () {
+            reveal(el);
+          };
+        }(els[k]));
+      } else {
+        io.observe(els[k]);
+      }
+    }
+  }
+
+  initRevealAnimations();
   initAppSplash();
 })();

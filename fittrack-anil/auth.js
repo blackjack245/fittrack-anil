@@ -30,6 +30,11 @@
   var ADMIN_PASSWORD = 'admin123';
   var ADMIN_ID = 'usr-admin-demo';
 
+  var DEMO_EMAIL = 'demo@fittrack.com';
+  var DEMO_PASSWORD = 'demo1234';
+  var DEMO_ID = 'usr-demo-fittrack';
+  var DEMO_NAME = 'Demo Kullanıcı';
+
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   // --- Depolama yardımcıları ---------------------------------------------
@@ -149,6 +154,41 @@
       createdAt: new Date().toISOString()
     });
     writeUsers(users);
+  }
+
+  function seedDemoUser() {
+    var users = readUsers();
+    var existing = users.find(function (u) {
+      return u.email.toLowerCase() === DEMO_EMAIL;
+    });
+    if (existing) return existing;
+    var demoUser = {
+      id: DEMO_ID,
+      name: DEMO_NAME,
+      email: DEMO_EMAIL,
+      password: DEMO_PASSWORD,
+      role: 'user',
+      createdAt: new Date().toISOString()
+    };
+    users.push(demoUser);
+    writeUsers(users);
+    return demoUser;
+  }
+
+  function handleDemoLogin() {
+    var user = seedDemoUser();
+    setCurrentUser(user);
+    if (window.FitTrackApp && typeof window.FitTrackApp.seedDemoPresentationData === 'function') {
+      window.FitTrackApp.seedDemoPresentationData();
+    }
+    closeAllModals();
+    updateAuthUI();
+    emitUserChange();
+    toast('Demo hesabıyla giriş yapıldı. Örnek veriler yüklendi.', true);
+    var dash = document.getElementById('dashboard');
+    if (dash) {
+      dash.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   function findUserByEmail(email) {
@@ -651,6 +691,13 @@
       });
     }
 
+    var btnDemoLogin = document.getElementById('btn-demo-login');
+    if (btnDemoLogin) btnDemoLogin.addEventListener('click', handleDemoLogin);
+    var btnDemoLoginModal = document.getElementById('btn-demo-login-modal');
+    if (btnDemoLoginModal) btnDemoLoginModal.addEventListener('click', handleDemoLogin);
+    var btnDemoLoginHero = document.getElementById('btn-demo-login-hero');
+    if (btnDemoLoginHero) btnDemoLoginHero.addEventListener('click', handleDemoLogin);
+
     // Modal kapatma
     var closeButtons = document.querySelectorAll('[data-modal-close]');
     for (var i = 0; i < closeButtons.length; i++) {
@@ -729,6 +776,7 @@
         return { id: u.id, name: u.name, email: u.email, role: u.role, createdAt: u.createdAt };
       });
     },
-    logout: handleLogout
+    logout: handleLogout,
+    loginAsDemo: handleDemoLogin
   };
 })();

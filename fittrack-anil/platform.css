@@ -220,6 +220,405 @@
   margin: 0;
 }
 
+/* --- Demo giriş butonu --- */
+.btn-demo {
+  background: linear-gradient(
+    135deg,
+    rgba(251, 146, 60, 0.2),
+    rgba(251, 146, 60, 0.06)
+  );
+  border: 1px solid rgba(251, 146, 60, 0.48);
+  color: var(--accent-orange);
+  font-weight: 650;
+  box-shadow: 0 6px 20px rgba(251, 146, 60, 0.12);
+}
+
+.btn-demo:hover {
+  border-color: rgba(74, 222, 128, 0.55);
+  color: var(--accent-green);
+  background: linear-gradient(
+    135deg,
+    rgba(74, 222, 128, 0.14),
+    rgba(251, 146, 60, 0.08)
+  );
+}
+
+.btn-demo-hero {
+  flex: 1 1 100%;
+  min-width: min(100%, 280px);
+  justify-content: center;
+}
+
+/* --- Antrenör kartları (pro) --- */
+.coach-card-pro {
+  position: relative;
+  overflow: hidden;
+}
+
+.coach-card-pro::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--accent-orange),
+    var(--accent-green)
+  );
+  opacity: 0.85;
+}
+
+.coach-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.coach-head-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.coach-specialty-tag {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent-green);
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.28);
+}
+
+.coach-stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.coach-stat strong {
+  color: var(--text-primary);
+  font-weight: 750;
+}
+
+.coach-stat-rating {
+  color: var(--accent-orange);
+  font-weight: 700;
+}
+
+.coach-avatar-strength {
+  background: linear-gradient(145deg, rgba(251, 146, 60, 0.28), rgba(248, 113, 113, 0.12));
+}
+
+.coach-avatar-cardio {
+  background: linear-gradient(145deg, rgba(56, 189, 248, 0.22), rgba(74, 222, 128, 0.12));
+}
+
+.coach-avatar-nutrition {
+  background: linear-gradient(145deg, rgba(74, 222, 128, 0.28), rgba(251, 146, 60, 0.1));
+}
+
+.coach-avatar-pt {
+  background: linear-gradient(145deg, rgba(167, 139, 250, 0.22), rgba(251, 146, 60, 0.12));
+}
+
+.coach-card-pro .coach-avatar {
+  width: 56px;
+  height: 56px;
+  font-size: 1.55rem;
+  flex-shrink: 0;
+}
+
+/* --- Dashboard görsel kartlar --- */
+.stat-card-visual {
+  position: relative;
+  border-color: rgba(148, 163, 184, 0.18);
+  background: linear-gradient(
+    160deg,
+    rgba(21, 25, 34, 0.98),
+    rgba(15, 19, 26, 0.92)
+  );
+  overflow: hidden;
+}
+
+.stat-card-visual::after {
+  content: "";
+  position: absolute;
+  right: -20%;
+  top: -30%;
+  width: 55%;
+  height: 80%;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.35;
+}
+
+.stat-card-visual-cal::after {
+  background: radial-gradient(circle, rgba(251, 146, 60, 0.35), transparent 70%);
+}
+
+.stat-card-visual-water::after {
+  background: radial-gradient(circle, rgba(74, 222, 128, 0.28), transparent 70%);
+}
+
+.stat-card-visual-ex::after {
+  background: radial-gradient(circle, rgba(74, 222, 128, 0.22), rgba(56, 189, 248, 0.15), transparent 70%);
+}
+
+.stat-visual-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.stat-visual-emoji {
+  font-size: 1.65rem;
+  line-height: 1;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(148, 163, 184, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.stat-visual-head h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.stat-visual-pct {
+  margin: 0.1rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent-orange);
+  letter-spacing: 0.02em;
+}
+
+.stat-card-visual-water .stat-visual-pct {
+  color: var(--accent-green);
+}
+
+.stat-card-visual-ex .stat-visual-pct {
+  color: var(--accent-green);
+}
+
+.mini-bar-glow {
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
+}
+
+.stat-card-weekly-chart {
+  grid-column: span 1;
+}
+
+.dash-week-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.35rem;
+  min-height: 108px;
+  margin-top: 0.65rem;
+  padding: 0.35rem 0.15rem 0;
+}
+
+.dash-week-col {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.dash-week-track {
+  width: 100%;
+  max-width: 2.25rem;
+  height: 72px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  border-radius: 8px 8px 4px 4px;
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.dash-week-bar {
+  display: block;
+  width: 72%;
+  min-height: 6px;
+  border-radius: 6px 6px 3px 3px;
+  background: linear-gradient(180deg, var(--accent-green), var(--accent-green-muted));
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.35);
+  transition: height 0.35s ease;
+}
+
+.dash-week-col.is-today .dash-week-bar {
+  background: linear-gradient(180deg, var(--accent-orange), var(--accent-orange-muted));
+  box-shadow: 0 0 14px rgba(251, 146, 60, 0.4);
+}
+
+.dash-week-col.is-today .dash-week-label {
+  color: var(--accent-orange);
+  font-weight: 700;
+}
+
+.dash-week-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dash-week-chart-empty {
+  margin: 0.5rem 0 0;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* --- AI yemek sonucu (premium) --- */
+.meal-result-premium {
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid rgba(251, 146, 60, 0.28);
+  background: linear-gradient(
+    155deg,
+    rgba(21, 25, 34, 0.98) 0%,
+    rgba(15, 19, 26, 1) 55%,
+    rgba(74, 222, 128, 0.06) 100%
+  );
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.meal-result-premium::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent-orange), var(--accent-green));
+}
+
+.meal-result-head {
+  padding: 1.15rem 1.2rem 0.85rem;
+}
+
+.meal-result-badge {
+  display: inline-flex;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #052e14;
+  background: linear-gradient(135deg, var(--accent-green), #86efac);
+  margin-bottom: 0.55rem;
+}
+
+.meal-result-premium .meal-result-title {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.25;
+  color: var(--text-primary);
+}
+
+.meal-macro-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  padding: 0 1.2rem 1rem;
+}
+
+.meal-macro-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.65rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  text-align: center;
+}
+
+.meal-macro-chip strong {
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.meal-macro-k {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.meal-macro-u {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.meal-macro-cal {
+  border-color: rgba(251, 146, 60, 0.35);
+  background: rgba(251, 146, 60, 0.1);
+}
+
+.meal-macro-cal strong {
+  color: var(--accent-orange);
+}
+
+.meal-result-meta-premium {
+  padding: 0 1.2rem 0.85rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  padding-top: 0.85rem;
+}
+
+.meal-result-disclaimer {
+  margin: 0;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+}
+
+/* --- Scroll reveal --- */
+.reveal-fade {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reveal-fade.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 {
+  transition-delay: 0.08s;
+}
+
+.reveal-delay-2 {
+  transition-delay: 0.16s;
+}
+
+.reveal-delay-3 {
+  transition-delay: 0.24s;
+}
+
 /* Header nav — mobilde yatay kaydırma, taşma yok */
 .site-header .main-nav.platform-nav {
   flex: 1 1 auto;
@@ -259,14 +658,47 @@
     grid-template-columns: 1fr;
   }
 
+  .meal-macro-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .site-header .main-nav.platform-nav {
     order: 3;
     width: 100%;
+  }
+
+  .hero-actions-studio {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero-actions-studio .btn {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .dash-week-chart {
+    gap: 0.2rem;
+  }
+
+  .dash-week-track {
+    max-width: 1.85rem;
+    height: 64px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .platform-card:hover {
     transform: none;
+  }
+
+  .reveal-fade {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .dash-week-bar {
+    transition: none;
   }
 }
